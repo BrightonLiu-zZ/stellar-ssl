@@ -157,9 +157,10 @@ pilot_gate:
   - no run with selected_epoch in {0, max_epochs - 1}
 
 budget:
-  pilot_minutes: 10            # ESTIMATE: pool-1 rotation took 0.90 min on 9,428 train stars; 74,398 here
-  full_hours: 2.0              # ESTIMATE, 24 runs; replace with the measured value after the pilot
-  note: "The first run also replays 106,284 stars from processed/sequences into data_cache (one-off)."
+  pilot_minutes: 10            # MEASURED 2026-09-2x (c1c2_probe.csv): conv rotation_period 0.67 + rotation 8.93 min
+  full_hours: 1.3              # MEASURED: 24 runs, mean minutes conv 9.33 / 0.71, mlp 2.45 / 0.24 -> 76 min total
+  note: "Data cache built separately in Claude Code (replay of 106,284 stars, ~40 min, inference-free).
+         Selected epochs 2-19, none at 0 or the cap; pilot gate clauses both met."
 
 paths:
   root: experiments/rotation_pool/c1c2
