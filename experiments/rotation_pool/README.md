@@ -9,10 +9,10 @@ no transit/eb/pulsating positive, no star seen in pre-training). Built by `swm.e
 |---|---|---|
 | `probe.csv`, `summary.csv`, `absolute.csv` | `analyze_rotation_pool.py` (linear family, 3 readouts, pool3 + noflare + strict + pool1) | F1-schema probe rows, paired deltas, absolutes |
 | `verdict.csv` | `report_rotation_pool.py` | the pre-registered reading (design §7 + A2) |
-| `*_xgb.csv` | `analyze_rotation_pool.py --families xgb` | XGBoost readout, `mean`, pool3 |
+| `*_xgb.csv` | `analyze_rotation_pool.py --families xgb --tag xgb` | XGBoost readout, `mean`, pool3. **`--tag xgb` is required**: without it the run writes the plain `probe/summary/absolute.csv` and overwrites the linear results |
 | `star_scores.parquet` | `analyze_rotation_pool.py` | per-star test scores at `mean` (bootstrap input) |
 | `c1c2/` | `run_rotation_pool_supervised.ps1` (user terminal) → `analyze_c1c2_supervised.py --manifest configs/rotation_pool.yaml` | end-to-end baselines, 24 runs, 76 min. **Its `c1c2_summary.csv` deltas reference the POOL-1 fusion score (hardwired) — ignore them; use `c1c2_absolute.csv`** |
-| `bootstrap/` | `prep_rotation_pool_bootstrap.py` → `replay_c1c2_scores.py` → `analyze_paper_bootstrap.py` | paired star-bootstrap, 1000 resamples, 12 contrasts |
+| `bootstrap/` | `prep_rotation_pool_bootstrap.py` → `replay_c1c2_scores.py` → `analyze_paper_bootstrap.py --in-dir experiments/rotation_pool/bootstrap --table experiments/rotation_pool/bootstrap/table1_data.csv --ablation experiments/rotation_pool/bootstrap/dynamics_ablation.csv --tasks rotation rotation_period` | paired star-bootstrap, 1000 resamples, 12 contrasts; `paired_bootstrap.csv` is published. **Warning:** `analyze_paper_bootstrap.py`'s default `--tex-out` is `paper/tables/tableC_bootstrap.tex` (Appendix G). The table writer loops over the paper's ten tasks, so on these two it raises `IndexError` *after* writing `paired_bootstrap.csv` and printing the verdict table, and *before* opening the `.tex` file — that crash (see `bootstrap/run.log`) is what kept Appendix G intact on 2026-09-25, not the arguments. Pass `--tex-out experiments/rotation_pool/bootstrap/unused.tex` anyway, so a fixed writer cannot overwrite Appendix G, and read the 12/12 agreement from the printed `agree` column |
 
 Footing: F1 (pool-1 rows reproduce), F2 (untrained_i0 = paper's untrained; discriminative, deviation D1), F3 (features
 match pool 2's cache) — all PASS 2026-09-20. C1/C2 replay reproduces result.json to 6e-10.
