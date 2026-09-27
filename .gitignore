@@ -63,6 +63,7 @@ experiments/c1c2_supervised/runs/
 !/experiments/rotation_pool/c1c2/c1c2_absolute.csv
 !/experiments/rotation_pool/c1c2/c1c2_summary.csv
 !/experiments/rotation_pool/c1c2/c1c2_probe.csv
+!/experiments/rotation_pool/bootstrap/paired_bootstrap.csv
 !/paper/build/*.csv
 # Internal review history of the paper and the frozen workshop submission: kept on disk, not
 # published. Anchored to /paper/ so no other `build/` or `wave*` directory is affected.
