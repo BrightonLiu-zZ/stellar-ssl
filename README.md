@@ -1,129 +1,130 @@
 # stellar-ssl
 
-Self-supervised latent dynamics world model on TESS stellar light curves.
+Code for the paper *What does self-supervision add to engineered features for stellar light
+curves?* (source `paper/main.tex`, compiled `paper/main.pdf`).
 
-## Overview
+We pre-train a convolutional variational encoder with a GRU latent-dynamics objective on unlabelled
+TESS 2-minute PDCSAP light curves, freeze it, append its per-star latent mean µ to 25 engineered
+periodogram and time-domain features, and read the combination out with one fixed linear probe on
+ten tasks (five variability classes, four asteroseismic targets, rotation period). The paper's
+Table 1 compares that fusion against the features alone, µ alone, the same fusion built on an
+untrained encoder, and two networks trained end-to-end on the same labelled stars.
 
-The central hypothesis: **variability types (stellar rotation, planetary transits) are linearly separable from a latent space trained purely on raw PDCSAP flux, with no labels during pretraining.** A GRU dynamics head predicts the next latent state z_{t+1} from preceding states z_{1:t}, forcing the encoder to factor out temporal structure rather than just reconstruct it.
+The tag [`arxiv-v1`](https://github.com/BrightonLiu-zZ/stellar-ssl/tree/arxiv-v1) is the state of
+the code and score tables the arXiv version reports.
 
-Primary evaluation (v1): binary variability classification {rotation, transit} via logistic regression on frozen encoder embeddings. A v1-supplementary rotation-period regression task fits linear regression of `rotation_period` (days) on the rotation=1 subset. Secondary evaluation (v1b): spectroscopic regression {Teff, log g, [Fe/H]} via linear regression.
+## What you can regenerate from a fresh clone
 
-The core ablation compares Variant A (VAE reconstruction + KL only) against Variant B (full world model with latent dynamics objective) to isolate the causal contribution of the dynamics term.
-
-## Architecture
-
-```
-Input [B, 1024, 1]  — one PDCSAP_FLUX window, 1024 cadences (~13.7 days)
-→ Encoder: 4× (Conv1D + BN + ReLU + MaxPool) → FC → (μ, log σ²) → z ∈ ℝ^128
-→ Dynamics: GRU — predicts ẑ_{t+1} from z_{1:t}
-→ Decoder: FC → 4× (ConvTranspose1D + BN + ReLU) → [B, 1024, 1]
-```
-
-Loss: `MSE(recon) + β·KL + λ·MSE(ẑ_{t+1}, encoder(x_{t+1}))`
-
-Training sequences: `SEQ_LEN=4` consecutive NaN-free windows from a single continuous segment (~5.7 days at T=1024, stride=1024); sequences never cross sector or gap boundaries.
-
-Downstream evaluation: freeze encoder, mean-pool z over SEQ_LEN windows → one embedding per segment, fit logistic / linear regression. No fine-tuning, no MLP heads.
-
-See [docs/architecture.md](docs/architecture.md) for full design rationale, ablation variants, baseline comparisons (FALCO, Astromer 2, ASTRAFier), and data layout.
-
-## Pipeline
-
-| Stage | Script / Notebook | Description |
+| Paper artefact | Command (`swm` env, repo root) | Reads |
 |---|---|---|
-| 0a | `src/notebooks/characterize_data_v2.ipynb` (legacy) → `processed/spoc_sector_map.csv` | TIC list for the bulk pipeline (Tmag<10, no plx cut per ADR-0002): 195,883 TICs × SPOC sector pairs. `processed/df_final.csv` is the legacy 34k-row output kept for reference. |
-| 0b | `src/build_sequences_bulk.py` (canonical) / `src/build_sequences.py` (deprecated) | Bulk MAST curl-script download of SPOC PDCSAP_FLUX, segment at NaN gaps and at time gaps > 5× median cadence (ADR-0003), MAD-normalize, slide windows, save NaN-free windows to `processed/sequences/*.npz` |
-| 0c | `src/build_labels.py` | Cross-match TIC IDs to APOGEE DR17 → GSP-Spec → LAMOST DR11 → `labels/stellar_params.csv` |
-| 0d | `src/build_variability_labels.py` | Cross-match TIC IDs to TARS + flatwrm2 + TOI → `labels/variability_labels_star.csv` |
-| 1 | *(not started)* | Train Conv1D-VAE + GRU on SDSC Expanse |
-| 2 | *(not started)* | Linear probe evaluation — per-class F1 / R² |
+| Table 1, Figure 1, Appendix D and I tables | `python experiments/plot_ml4ps_scorecard.py` | `experiments/{f1_fusion_scorecard,f1_xgb_control,c1c2_supervised,unseen_pretraining}/*.csv` |
+| Appendix J table (rotation pool) | `python experiments/plot_rotation_pool_appendix.py` | `experiments/rotation_pool/**/*.csv`, `paper/build/table1_data.csv` |
 
-See [docs/STATUS.md](docs/STATUS.md) for current counts and progress on each stage.
+Both write into `paper/tables/`, `paper/figures/` and `paper/build/`, and reproduce the committed
+files exactly (the figure differs only in its PDF creation date). The first script also prints the
+headline counts, e.g. `fusion beats features beyond 2*SE on 7 of 10`.
 
-## Data
+The other printed numbers come with their plotted or tabulated values but not with the inputs
+needed to recompute them:
 
-### Input
-- **Source:** TESS SPOC 2-min cadence, PDCSAP_FLUX only (never SAP_FLUX)
-- **Sample:** ~195k TICs (Tmag < 10, no parallax cut; see `docs/adr/0002-drop-plx-cut.md`) with ≥ 1 SPOC sector — listed in `processed/spoc_sector_map.csv` (669k (TIC, sector) pairs). The earlier 34k-star sample (Tmag<7, plx>10 mas) is retained only as `processed/df_final.csv` and is no longer used.
-- **Access:** MAST bulk curl scripts per sector (canonical) → FITS via `astropy.io.fits`; `lightkurve` retained for single-star debugging. No FITS files are committed to this repo.
+| Paper artefact | Published values | Needs (not in the repository) |
+|---|---|---|
+| Appendix G paired bootstrap | `experiments/paper_bootstrap/paired_bootstrap.csv` | per-star prediction parquets |
+| Validation loss vs probe score (Figure 2, Appendix E) | `paper/build/figB_data.csv`, `figB_exp09_data.csv` | training-curve dumps of the exp05 and exp09 pre-training runs |
+| Reconstruction figure (Appendix F) | `paper/build/figD_recon_data.csv` | checkpoints and the light-curve corpus |
 
-### Labels
-- **v1 — variability (primary):** binary `[rotation, transit]` per star
-  - Rotation: TARS (Boyle, Bouma & Mann 2026)
-  - Transits: NASA Exoplanet Archive TOI (non-retired only)
-  - Flares: Seli et al. 2025 (catalog; `flatwrm2` is the detector, Vida et al. 2021) — produced and retained in `variability_labels_star.csv`, excluded from v1 eval (see `docs/adr/0001-drop-flare-from-v1-eval.md`)
-- **v1-supplementary — rotation period:** `rotation_period` (days) regression on the rotation=1 subset; same frozen encoder, linear regression head
-- **v1b — spectroscopic (supplementary):** {Teff, log g, [Fe/H]} — APOGEE DR17 → Gaia DR3 GSP-Spec → LAMOST DR11 (priority fallback); ~13.8% match rate on this bright sample
+The score tables hold every arm and seed: `*_probe.csv` is one row per (task, arm, seed, readout),
+`*_absolute.csv` the per-arm score (mean, SD and 2 SE over seeds), `*_summary.csv` the per-task
+contrasts such as fusion minus features, with their 2 SE band and the per-seed deltas.
 
-### Key constraints
-- NaN windows are **discarded** — no interpolation, zero-fill, or padding at any stage
-- Sequences never stitch across sectors or the mid-sector downlink gap
-- Sequences shorter than SEQ_LEN are discarded (not padded)
+## Environments
 
-## Setup
+| Env | File | Used for |
+|---|---|---|
+| `astro` | `environment.yml` | Stage 0: download, windowing, label cross-match (CPU) |
+| `swm` | `environment-swm.yml` | everything under `src/swm/`, the `experiments/` analysis scripts, the paper's tables and figures; PyTorch 2.5.1 + CUDA 12.1 |
 
 ```bash
 conda env create -f environment.yml
-conda activate astro
+conda env create -f environment-swm.yml
+conda activate swm
+export PYTHONPATH=src          # PowerShell: $env:PYTHONPATH = "src"
+python -m pytest src/swm/tests -q
 ```
 
-`environment.yml` pins the direct dependencies used by this project (Python 3.10, numpy, pandas, scipy, astropy, astroquery, lightkurve, tenacity, scikit-learn, PyTorch). Full transitive dependency versions are captured in the conda env export used to generate it.
+On a fresh clone the tests that need the corpus, labels or cached µ skip themselves.
 
-## Usage
+## Full pipeline, from raw data
 
-```bash
-# Stage 0b (canonical) — bulk download + window TESS light curves via MAST curl scripts
-python src/build_sequences_bulk.py
-python src/build_sequences_bulk.py --resume                     # skip (TIC, sector) pairs already done
-python src/build_sequences_bulk.py --sectors 1-101 --workers 16
+This is the order the committed code runs in. It is a record, not a one-command pipeline: it needs
+the TESS corpus (downloaded by step 2), a CUDA GPU for pre-training, and the edits listed under
+*Before running* below.
 
-# Stage 0b (deprecated) — lightkurve-per-star, single-star debugging only
-python src/build_sequences.py --resume
+| # | Step | Command | Env |
+|---|---|---|---|
+| 1 | SPOC sector map, Tmag < 10 | `python src/download_cdpp.py` | astro |
+| 2 | Download PDCSAP light curves, segment at time gaps, cut NaN-free windows | `python src/build_sequences_bulk.py --sectors 1-101 --workers 16` | astro |
+| 3 | Variability labels (TOI, eclipsing binaries, pulsators, rotation, flares) | `python src/build_variability_labels.py` | astro |
+| 4 | Asteroseismic and other new-task labels | `python src/labels/build_new_task_labels.py` | astro |
+| 5 | Pool 1: label-enriched subset and 70/15/15 split | `python -m swm.data.subset` | swm |
+| 6 | Pack pool 1 into 256-cadence windows | `python -m swm.data.pack +experiment=exp01_window256_seq16` | swm |
+| 7 | Pool 2 (the five new-task probes) | `python -m swm.eval.new_task_pool` | swm |
+| 8 | Pre-train the shipped recipe, seeds 0-5, plus its no-dynamics twin | `python -m swm.train +experiment=exp07/exp07_hann0p3_fbwd variant=B seed=<s>` (and `exp07/exp07_hann0p3_off`); queue: `experiments/run_exp07_aux_factorization.ps1` | swm |
+| 9 | Frozen-encoder µ, pool 2 and pool 1 | `python -m swm.eval.new_task_extract ...`, `python experiments/build_subset_mu_cache.py ...` | swm |
+| 10 | Linear fusion scorecard (features / µ / fusion / untrained) | `python experiments/analyze_f1_fusion_scorecard.py` | swm |
+| 11 | Supervised baselines C1, C2 | `experiments/run_c1c2_supervised_baselines.ps1`, then `python experiments/analyze_c1c2_supervised.py` | swm |
+| 12 | Stars unseen in pre-training | `python experiments/dump_paper_linear_scores.py`, then `python experiments/analyze_unseen_rescore.py` | swm |
+| 13 | Rotation pool (pool 3) | `python -m swm.eval.rotation_pool`, then `python experiments/analyze_rotation_pool.py`, `python experiments/report_rotation_pool.py` | swm |
+| 14 | Tables and figures | the two commands at the top of this page | swm |
 
-# Stage 0c — spectroscopic label cross-match (supplementary)
-python src/build_labels.py
-python src/build_labels.py --resume
-python src/build_labels.py --limit 5            # smoke test on 5 stars
+The untrained-encoder control is not trained; it is a seeded random initialisation built inside the
+extraction step. The 25 engineered features are computed by `swm.eval.features` and cached on first
+use. Checkpoint selection is `best_recon_aux` throughout. Per-experiment records, including the
+pre-registered gates the shipped recipe had to pass, are the `experiments/*README.md` files and the
+single-file manifests in `experiments/configs/`.
 
-# Stage 0d — variability label cross-match (primary)
-python src/build_variability_labels.py
-python src/build_variability_labels.py --resume
-python src/build_variability_labels.py --limit 5
-```
+### Before running
 
-All scripts support `--resume` (checkpoint-based skip of completed TICs) and `--limit N` for smoke testing.
+- `src/swm/configs/paths/local.yaml` hard-codes `repo_root`; override it on the command line
+  (`paths.repo_root=$PWD`) or edit the file.
+- The `experiments/run_*.ps1` queues are generated for the author's machine and set `$py` and
+  `$repo` to local paths in their first lines; edit those two lines.
+- Two catalogues are not fetched by any script and must be placed by hand: the TARS rotation
+  table (`data/tars_table_2.feather`, Zenodo 10.5281/zenodo.19917941) and the flare catalogue
+  (`data/Table3_flare_catalog.csv`, Zenodo 10.5281/zenodo.14179313). Step 4 reads its catalogues from
+  `labels/external/`, which you populate from the papers cited in the paper's §2.
+- Four steps were run with arguments that no committed file records: the pool-2 µ extraction for
+  the shipped cells, the XGBoost control (`analyze_f1_fusion_scorecard.py --families xgb`), and the
+  rotation-pool bootstrap and supervised data cache. Their outputs are the published CSVs above.
 
-## Project Structure
+## Not in the repository
+
+| What | Size | Why |
+|---|---|---|
+| Light-curve corpus (`processed/sequences/`) and packed windows | — | regenerable from MAST with steps 1-2 and 6 |
+| Label catalogues (`labels/`, `data/`) | 44 MB for `labels/` | third-party catalogues; regenerable with steps 3-4 |
+| Checkpoints, µ caches, per-star predictions (`experiments/**`) | 113 GB in total | size |
+| Training logs | — | Weights & Biases, not published |
+
+## Layout
 
 ```
 src/
-  build_sequences_bulk.py       Stage 0b (canonical)
-  build_sequences.py            Stage 0b (deprecated, lightkurve-per-star)
-  build_labels.py               Stage 0c
-  build_variability_labels.py   Stage 0d
-  notebooks/                    Stage 0a + EDA + sanity checks
-processed/spoc_sector_map.csv   Stage 0a output: (TIC, tmag, sector) for the bulk pipeline (195k TICs)
-processed/
-  df_final.csv                  legacy Stage 0a output (34k TICs, plx>10), no longer used
-  sequences/                    per-segment .npz files — Stage 0b canonical output (gap-guarded, ADR-0003)
-  sequences_legacy/             pre-ADR-0003 .npz files, read-only legacy
-  build_sequences_bulk_progress.csv   (TIC, sector) checkpoint for the bulk script
-labels/
-  variability_labels_star.csv   multi-label variability annotations (Stage 0d output; stale 34k sample)
-  stellar_params.csv            spectroscopic labels (Stage 0c output; stale 34k sample)
-models/                         model checkpoints (Stage 1, not yet populated)
-docs/
-  architecture.md               full design doc
-  labels-sources.md             catalog details and acceptance criteria
-  STATUS.md                     live pipeline progress
-  adr/                          architecture decision records (ADR-0001..0003)
+  download_cdpp.py, build_sequences_bulk.py, build_variability_labels.py   Stage 0 (astro)
+  labels/build_new_task_labels.py                                           new-task labels
+  qc/                        label audits (not on the paper's path)
+  swm/                       model, training, evaluation (Hydra configs in swm/configs/)
+  notebooks/                 diagnostics notebooks, one per experiment
+experiments/
+  configs/*.yaml             one manifest per experiment
+  analyze_*.py, plot_*.py    analysis and paper figures
+  *README.md                 per-experiment records
+  <score-table dirs>/*.csv   the published score tables
+paper/
+  main.tex, refs.bib, figures/, tables/    paper source (tables and figures generated)
+  build/                     rebuild notes, reference checkers, provenance CSVs
 ```
 
-## References
+## License
 
-- **TARS** — Boyle, A. W., Bouma, L. G., & Mann, A. W. (2026). *TESS All-Sky Rotation Survey*. arXiv:2603.05586. Data: Zenodo record 19917941 (v2, current).
-- **Flares** — Seli, B., Vida, K., Oláh, K., Görgei, A., Soós, Sz., Pál, A., Kriskovics, L., & Kővári, Zs. (2025). *Stellar flare morphology with TESS across the main sequence*. A&A. arXiv:2412.12989. 121,895 vetted flares, sectors 1–69, 2-min PDCSAP. Data: Zenodo (public). The detector `flatwrm2` is Vida, K., et al. (2021), an LSTM built for *Kepler*; Seli et al. retrained it for TESS and produced this catalog. Cite the catalog as Seli+2025, never as "Vida et al. 2025".
-- **TOI** — NASA Exoplanet Archive TESS Object of Interest list. Accessed via `astroquery.ipac.nexsci`.
-- **APOGEE DR17** — Abdurrouf et al. (2022). VizieR `III/286/catalog`.
-- **Gaia DR3 GSP-Spec** — Recio-Blanco et al. (2023). VizieR `I/355/paramp`.
-- **LAMOST DR11** — Accessed via VizieR `V/162/dr11sl`.
+MIT, see `LICENSE`.
