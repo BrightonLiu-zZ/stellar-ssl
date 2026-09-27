@@ -1,0 +1,137 @@
+\documentclass[10pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt}
+\newcommand{\old}[1]{\textcolor{red}{#1}}
+\newcommand{\new}[1]{\textcolor{blue}{#1}}
+\pagestyle{empty}
+
+\begin{document}
+
+{\large\textbf{What changed between the ML4PS submission and the arXiv version}}
+
+The body is the same paper. \textbf{No number in Table~1 or Figure~1 changed, the headline count is
+still 7 of 10, and the reference list is the same.} What the four-page limit had cut is now written
+out: four new appendices, four extended ones, and six additions to the body. The last pages show the
+body with every change marked --- \old{red = removed}, \new{blue = added} --- and stop where the body
+stops. The appendices are not marked: four of them are new in full and would be entirely blue, so
+they are listed here instead.
+
+\textbf{1. What did not change}
+
+\begin{itemize}[leftmargin=*, itemsep=2pt]
+\item Table~1, all ten tasks and every arm --- the same generated file, every digit identical.
+\item Figure~1 --- the same file, including the row shading added on 19 September.
+\item ``improves the readout on 7 of 10 tasks'', and every number quoted in the abstract and \S3.
+\item The reference list: same 22 entries, no additions.
+\item The abstract and \S1, word for word. \S2 changed in one place only, item~1 below.
+\end{itemize}
+
+\textbf{2. Added to the body}
+
+\begin{enumerate}[leftmargin=*, itemsep=4pt]
+
+\item \textbf{The rotation confound, disclosed and then answered.} Our first star pool admits a star
+as a positive only through the transit, eclipsing-binary or pulsating catalogues, and screens its
+quiet stars against the rotation catalogue as well. Every rotator in it therefore carries a second
+label, and no rotation-only star is in it --- which is exactly the wrong pool on which to score
+rotation. \S2 now says so, and \S3 gives the two rotation tasks rescored on a third pool of 106,284
+stars, the corpus outside the first pool, where rotators are a natural 13\%. Neither verdict changes
+the count of 7: rotation gains $+0.055 \pm 0.006$ there, but an untrained encoder also gains
+$+0.029$, so about half of it is what any 128 extra columns buy; rotation period gains
+$+0.034 \pm 0.002$ with the untrained control at zero. The full measurement is new Appendix~J.
+
+\item \textbf{The validation-loss figure moved into the body} (now Figure~2), next to the paragraph
+that argues from it. It was Appendix~C before, and a reader had to take the claim on trust.
+
+\item \textbf{The within-window artifact, in one sentence in \S4} pointing to new Appendix~F: the
+objective develops a localised artifact inside each window, none of the interventions we tried
+cleared both pre-registered acceptance criteria, and the recipe we ship does so by the stated
+fallback rule rather than by winning.
+
+\item \textbf{One sentence on where the nonlinear readout helps.} Where XGBoost raises the
+features-only score, the gain from adding $\mu$ falls; the rank correlation across the ten tasks is
+$0.92$.
+
+\item \textbf{Table~1's caption now says what its bold means} --- best point estimate, no
+significance test --- because the appendix tables bold something else, a difference resolved beyond
+its error bar. The two conventions were silently different before.
+
+\item \textbf{The discovery question is now marked as exploratory}, with the reason: with no labels
+there is nothing to score a latent-space separation against, so it needs a design of its own. And the
+reproducibility paragraph carries the actual repository link instead of ``released on publication''.
+
+\end{enumerate}
+
+\newpage
+
+\textbf{3. Four new appendices}
+
+\begin{itemize}[leftmargin=*, itemsep=4pt]
+\item \textbf{A --- Pre-training and readout details.} What one pre-training example is, the
+first-difference term in the objective and why it is there, optimiser and schedule, batch size,
+epochs and patience, the beta warm-up and which checkpoint is frozen, standardisation using
+training-split statistics only, class weighting, and the settings of both supervised baselines.
+\item \textbf{B --- The two star pools, and what a quiet star is.} The exact construction of both
+pools, and the statement that neither is screened against the other's catalogues.
+\item \textbf{F --- The within-window artifact, and the two gates that governed it.} Both
+pre-registered acceptance criteria verbatim, a reconstruction figure showing the artifact, the
+interventions we tried along four axes, and why the tapered recipe is the one we ship.
+\item \textbf{J --- The two rotation tasks on a pool that contains rotation-only stars.} The
+measurement behind item~1 above, with the old and new numbers side by side.
+\end{itemize}
+
+\textbf{4. Four appendices extended}
+
+\begin{itemize}[leftmargin=*, itemsep=4pt]
+\item \textbf{C} gains ``Why 128 redundant columns cost a linear fit'': the stars-per-coefficient
+argument for the two tasks where fusion loses, and the prediction it makes --- an untrained encoder's
+128 columns should cost about the same as a trained one's, and they do.
+\item \textbf{D} gains a per-task \emph{retained} column in its table: the share of each gain that
+survives removing the GRU prediction term. The other columns are unchanged.
+\item \textbf{E} is split --- its panel (a) is now Figure~2 in the body, panel (b) stays here --- and
+says plainly that on the family our encoder belongs to the anti-correlation holds on two tasks and
+reverses on two, while the loss optimum is still never the probe optimum.
+\item \textbf{H} gains ``What `modelled on T'DA' means'': what we kept, changed and dropped relative
+to Audenaert et al.\ (2021), feature by feature.
+\end{itemize}
+
+\textbf{5. Format}
+
+\begin{itemize}[leftmargin=*, itemsep=2pt]
+\item Author block de-anonymised; first-page notice reads ``Preprint.'' instead of the workshop line.
+\item The three float-spacing overrides are gone. They existed only to hold four pages.
+\item The paper is 15 pages: body through page 5, references, then ten appendices.
+\end{itemize}
+
+\textbf{Appendix letters moved}, because four were inserted. The marked-up pages use the
+\emph{arXiv} version's letters throughout, including inside deleted text.
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+ML4PS & arXiv & \\
+\midrule
+--- & A & Pre-training and readout details (new) \\
+--- & B & The two star pools, and what a quiet star is (new) \\
+A & C & The two tasks where fusion does not help \\
+B & D & The gain under a nonlinear readout \\
+C & E & Validation reconstruction against downstream score \\
+--- & F & The within-window artifact, and the two gates (new) \\
+D & G & Paired bootstrap over test stars \\
+E & H & The 25 engineered features \\
+F & I & Evaluation restricted to stars never seen in pre-training \\
+--- & J & The two rotation tasks on a rotation-only pool (new) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The marked-up body starts on the next page.
+
+\end{document}
