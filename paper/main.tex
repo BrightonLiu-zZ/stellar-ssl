@@ -104,7 +104,7 @@ by star: every star labelled as a transit host, eclipsing binary or pulsator tha
 window, plus a random sample of 10{,}000 quiet stars, listed in none of our variability catalogues. The pre-training
 loss never sees a label, but this pool is label-enriched, not a random draw from the survey. The other five probes draw their labels from catalogues that barely overlap this subset and are scored on a second pool of 22{,}860 stars built the same way (every catalogue positive
 with a usable window plus 10{,}000 quiet stars, split 70/15/15). No test star of the first pool
-enters pre-training. About 8\% of the second pool's test stars (265 of 3{,}429) were in the pre-training subset; removing them leaves all seven gains in place
+enters pre-training. The first pool admits positives only through the transit, eclipsing-binary and pulsating catalogues and screens its quiet stars against the rotation catalogue as well, so every rotator in it carries a second label and it holds no rotation-only star; Appendix~\ref{app:rotpool} rescores the two rotation tasks on a third pool of 106{,}284 stars, the corpus outside the first pool, where rotators are a natural 13\%. About 8\% of the second pool's test stars (265 of 3{,}429) were in the pre-training subset; removing them leaves all seven gains in place
 (Appendix~\ref{app:unseen}). Each light curve is split into contiguous segments wherever the time axis
 breaks, at a missing cadence or a jump longer than five median cadences; segments are
 median-normalised by their median absolute deviation and sliced into non-overlapping windows of 256
@@ -193,7 +193,7 @@ Figure~\ref{fig:deltas}a give the comparison. Adding $\mu$ to the 25 features im
 fixed readout beyond $2\,\mathrm{SE}$ on 7 of 10 tasks, led by solar-like oscillators $+0.071$,
 pulsating $+0.057$ and flare activity $+0.051$, and reaching $+0.013$ ($R^{2}$) on rotation period.
 Rotation is positive but just short of the
-bar ($+0.016$ against $0.016$). The two negative tasks are the ones where 128 extra columns cost more
+bar ($+0.016$ against $0.016$). On the rotation pool of Appendix~\ref{app:rotpool}, where the two classes differ in rotation and nothing else, the rotation gain is $+0.055 \pm 0.006$ but an untrained encoder also gains $+0.029$, so about half of it is what any 128 extra columns buy on 74{,}000 training stars; the rotation-period gain there is $+0.034 \pm 0.002$ with the untrained control at zero. Neither verdict moves the count. The two negative tasks are the ones where 128 extra columns cost more
 than they add: the 25 features already cover the task (oscillating giants, $-0.003$ on a baseline
 of $0.920$) or the training set is too small to fit 128 more weights (RGB versus helium-burning, $-0.050$ on
 755 training stars). On both, an untrained encoder loses by about the same amount as the trained
@@ -354,7 +354,7 @@ pre-trained and monitored on this pool's training and validation splits.
 Note what the two clauses do differently. A star becomes a positive member only through the three
 detection catalogues; rotation and flare appear only as exclusions on the quiet draw. A rotator that
 is not also a transit host, eclipsing binary or pulsator is therefore neither admitted as a positive
-nor drawn as a quiet star, and is absent from this pool altogether.
+nor drawn as a quiet star, and is absent from this pool altogether. Appendix~\ref{app:rotpool} measures what this costs the two rotation rows.
 
 \paragraph{The second pool (22{,}860 stars).} The four external catalogues behind the asteroseismic
 and rotation-period tasks are joined to the corpus into one table of 11{,}007 stars, each row a star
@@ -700,6 +700,80 @@ on the test stars never seen in pre-training. Bold: beyond $2\,\mathrm{SE}$ over
 \centering
 \scriptsize
 \input{tables/table_unseen}
+\end{table}
+
+\section{The two rotation tasks on a pool that contains rotation-only stars}
+\label{app:rotpool}
+
+\paragraph{The defect.} As Appendix~\ref{app:pools} states, the first pool admits a star as a positive
+only through the transit, eclipsing-binary and pulsating catalogues, and its quiet draw excludes every
+star the rotation catalogue lists. All 1{,}138 rotators in that pool are therefore also transit hosts,
+eclipsing binaries or pulsators (607, 383 and 148 by split stratum), and none of its 10{,}000 quiet
+stars rotates. A readout can separate the two classes of the \emph{rotation} task by detecting the
+co-occurring class, and the \emph{rotation period} task is fitted on the same co-labelled rotators
+(669 training, 150 test). The ML4PS version of this paper scored both tasks on that pool; the body
+above still prints those numbers, and this appendix reports the same two tasks on a pool built to
+remove the defect. The design, the population, the arms, the readouts and the rule for reading the
+result were fixed in writing before any score on the new pool was computed.
+
+\paragraph{The rotation pool.} Every corpus star with at least one usable window that is not in the
+first pool: 106{,}284 stars, of which 13{,}789 carry a rotation period in the TESS All-Sky Rotation
+Survey \citep{boyle2026} and 92{,}495 do not. By construction the pool contains no transit host,
+eclipsing binary or pulsator (the first pool took every one), no star that entered pre-training, and
+no sampling step: rotators are 13.0\% of it, against 12.5\% of the corpus, so both rotation tasks are
+scored at the survey's own prevalence rather than the case-control prevalence of the other pools. It
+is split 70/15/15 by star, stratified on rotators with period at most five days (8{,}786), other
+rotators (5{,}003) and non-rotators, seed 0. Rotation period keeps the five-day cap of the body. A
+non-rotator here is a star the survey does not list, not a star examined and found not to rotate;
+this is the same label limitation that bounds the body's rotation row. No encoder is run again: the
+per-star encoder outputs and the 25 engineered features for these stars had been cached for the
+survey-prevalence check of \S4, and the readouts are the body's, refitted on the new training split.
+
+Two properties still differ between the classes besides rotation, both astrophysical rather than
+sampling artefacts: 10.4\% of the rotators and 0.5\% of the non-rotators carry a flare label, and
+0.3\% of the rotators against 9.4\% of the non-rotators are oscillating giants or solar-like
+oscillators. The headline rows keep every star, because a survey contains them; two sensitivity rows
+refit the readout with flare stars removed from both classes, and with the positives restricted to
+stars in no non-rotation catalogue and the negatives to stars in no catalogue at all.
+
+\paragraph{Result.} Table~\ref{tab:rotpool} gives both tasks on the first pool and on the rotation
+pool, every column of Table~\ref{tab:scorecard} included. Three things change and one does not.
+The engineered-feature score on the rotation task falls from 0.540 to 0.386: the first pool's
+negatives are stars in no catalogue, the rotation pool's negatives are every non-rotator in the
+survey, and the second is the harder set. The fusion gain on rotation rises from $+0.016 \pm 0.016$
+to $+0.055 \pm 0.006$, but an untrained encoder now also gains $+0.029$ (init spread $+0.027 \pm
+0.003$ over six inits) where on the first pool it lost $0.026$; with 74{,}398 training stars, 128
+random columns are no longer redundant to a linear fit. The trained encoder is ahead of the untrained
+one by $+0.029 \pm 0.008$, paired by seed. Because the pre-registered rule for these two rows requires
+the untrained control to stay within $2\,\mathrm{SE}$ of zero, rotation does not count, as it did
+not before. Rotation period does count on both pools, and more clearly on the new one: $+0.034 \pm
+0.002$ on 1{,}318 test stars against $+0.013 \pm 0.010$ on 150, with the untrained control at
+$-0.003$. The body's count of 7 of 10 is therefore unchanged. The two sensitivity rows agree with the
+headline on both verdicts. The dynamics-off contrast keeps its sign on both tasks ($+0.019 \pm 0.007$
+and $+0.020 \pm 0.003$), and a paired star-bootstrap of every contrast in the table
+(1{,}000 resamples, as in Appendix~\ref{app:bootstrap}) agrees with every seed-band verdict.
+
+Two of the body's other tallies would change if the rotation pool replaced the first pool in
+Table~\ref{tab:scorecard}, and are stated here so the reader can recount. Under XGBoost the fusion
+gain on rotation period turns from $+0.036$ to $-0.004 \pm 0.003$ (the features alone reach 0.829),
+so Appendix~\ref{app:readout}'s tally of 4 wins, 5 ties and 1 loss becomes 3, 5 and 2. Against the
+raw-flux MLP the fusion probe is behind on rotation period (0.752 against 0.773, $-0.021 \pm 0.004$),
+so ``ahead on 9 of 10'' becomes 8 of 10; it stays ahead of the convolutional baseline on both tasks.
+Under the linear readout the untrained control's largest gain across the ten tasks becomes the
+$+0.029$ above rather than the $+0.016$ the body quotes; that sentence's conclusion, that the gains
+which count are not what 128 arbitrary columns buy, is what the rule of this appendix enforces
+explicitly.
+
+\begin{table}[H]
+\caption{The two rotation tasks on the first pool (the body's numbers) and on the rotation pool.
+Linear and XGBoost readouts and the two supervised baselines are those of Table~\ref{tab:scorecard};
+gain = features\,$\oplus\,\mu$ minus features, mean over six encoder seeds, bold beyond
+$2\,\mathrm{SE}$; untrained gain = the same with the untrained encoder. Sensitivity rows refit the
+linear readout on the restricted population. $n$: test stars; prev.: rotator prevalence.}
+\label{tab:rotpool}
+\centering
+\scriptsize
+\input{tables/table_rotation_pool}
 \end{table}
 
 \end{document}
