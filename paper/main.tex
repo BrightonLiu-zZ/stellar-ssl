@@ -171,7 +171,9 @@ averaged; Appendix~\ref{app:bootstrap}) checks that no verdict hinges on the par
 \begin{table}[t]
 \caption{Ten-task scorecard. Frozen arms: a fixed logistic or ridge readout, or XGBoost on the same
 inputs (Appendix~\ref{app:readout}). Bold: best point estimate of the three arms under each frozen
-readout. $n$: test stars; prev.: positive-class prevalence.}
+readout, with no significance test attached; bold in the appendix tables instead marks a difference
+resolved beyond its error bar, so the two conventions are not interchangeable. $n$: test stars;
+prev.: positive-class prevalence.}
 \label{tab:scorecard}
 \centering
 \scriptsize
@@ -436,7 +438,8 @@ $-0.003$).
 No prediction term: the same recipe trained without the GRU prediction term. Retained: the share of
 the full $\mu$ gain that survives that removal, printed only where the full gain is a gain, and
 negative where the gain changes sign rather than shrinking. Untrained: a randomly
-initialised encoder, which is a single encoder and carries no band. Bold: beyond $2\,\mathrm{SE}$. The
+initialised encoder, which is a single encoder and carries no band. Bold: beyond $2\,\mathrm{SE}$ ---
+unlike Table~\ref{tab:scorecard}, where bold marks the best point estimate and implies no test. The
 last row counts tasks won, tied and lost at that bar.}
 \label{tab:readout}
 \centering
