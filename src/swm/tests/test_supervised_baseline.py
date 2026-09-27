@@ -23,6 +23,8 @@ repo_root = Path(__file__).resolve().parents[3]
 MANIFEST_PATH = repo_root / "experiments" / "configs" / "c1c2_supervised_baselines.yaml"
 SUBSET_MU = repo_root / "experiments" / "exp08_menu_channel" / "subset_mu_cache" / "hann0p3_fbwd_s0.npz"
 POOL_MU = repo_root / "experiments" / "exp08_menu_channel" / "mu_cache" / "hann0p3_fbwd_s0.npz"
+PACKED = repo_root / "experiments" / "exp01_window256_seq16" / "packed"
+LABELS = repo_root / "labels" / "variability_labels_star.csv"
 
 
 @pytest.fixture(scope="module")
@@ -128,11 +130,13 @@ def test_manifest_target_transforms_match_the_probe(manifest):
 
 def test_queue_expansion_is_arm_major_and_complete(manifest):
     runs = expand_runs(manifest)
-    assert len(runs) == 2 * 11 * 3
+    n_seeds = len(manifest["arms"]["conv_supervised"]["seeds"])
+    per_arm = 11 * n_seeds
+    assert len(runs) == 2 * per_arm
     assert len(set(runs)) == len(runs)
     first_arm = manifest["queue"]["arm_order"][0]
     assert runs[0] == (first_arm, manifest["queue"]["order"][0], 0)
-    assert runs[32][0] == first_arm and runs[33][0] == manifest["queue"]["arm_order"][1]
+    assert runs[per_arm - 1][0] == first_arm and runs[per_arm][0] == manifest["queue"]["arm_order"][1]
 
 
 def test_pilot_is_one_arm_one_seed_every_task(manifest):
@@ -187,9 +191,10 @@ def test_pool_population_matches_the_f1_mu_cache_star_for_star():
     assert bags.counts.tolist() == cache["test_counts"].tolist()
 
 
+@pytest.mark.skipif(not (PACKED / "test_index.parquet").exists(), reason="packed index not built")
 def test_v1_manifest_counts_match_the_packed_index(manifest):
     import pandas as pd
-    packed = repo_root / "experiments" / "exp01_window256_seq16" / "packed"
+    packed = PACKED
     by_name = {}
     for task in manifest["tasks"]:
         by_name[task["name"]] = task
@@ -198,6 +203,8 @@ def test_v1_manifest_counts_match_the_packed_index(manifest):
         assert by_name["eb"]["n"][split] == index["tic_id"].nunique()
 
 
+@pytest.mark.skipif(not ((PACKED / "test_index.parquet").exists() and LABELS.exists()),
+                    reason="packed index or label catalogue not present")
 def test_every_task_resolves_to_the_f1_test_population(manifest):
     """The footing check: all 11 keep masks reproduce F1's published n_test and n_test_pos.
 
