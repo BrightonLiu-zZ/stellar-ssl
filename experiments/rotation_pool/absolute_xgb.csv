@@ -1,0 +1,15 @@
+block,task,shape,readout,readout_family,arm_set,family,metric,n_seeds,score_mean,score_sd,score_2se,n_test,n_test_pos,reportable
+pool3,rotation,detection,mean,xgb,features_only,features,pr_auc,6,0.5182971073555196,0.0016264498133868723,0.0013279907116809193,15944,2069,False
+pool3,rotation_period,regression,mean,xgb,features_only,features,r2,6,0.8288212127641369,0.0043552632319802526,0.0035560575379521143,1318,-1,True
+pool3,rotation,detection,mean,xgb,mu,hann0p3_fbwd,pr_auc,6,0.43591496565653953,0.007382909306474583,0.0060281202060359865,15944,2069,False
+pool3,rotation_period,regression,mean,xgb,mu,hann0p3_fbwd,r2,6,0.7290925898161101,0.008137980492475001,0.006644633247762371,1318,-1,True
+pool3,rotation,detection,mean,xgb,features_plus_mu,hann0p3_fbwd,pr_auc,6,0.5153078693039989,0.002325734658217371,0.001898954396579597,15944,2069,False
+pool3,rotation_period,regression,mean,xgb,features_plus_mu,hann0p3_fbwd,r2,6,0.8246783563761287,0.005764916702811144,0.0047070347771784385,1318,-1,True
+pool3,rotation,detection,mean,xgb,mu,hann0p3_off,pr_auc,6,0.4027288800296061,0.00325000556104644,0.0026536184285905146,15944,2069,False
+pool3,rotation_period,regression,mean,xgb,mu,hann0p3_off,r2,6,0.5787062456899706,0.03750307541891744,0.03062113285382074,1318,-1,True
+pool3,rotation,detection,mean,xgb,features_plus_mu,hann0p3_off,pr_auc,6,0.5090908702723302,0.0022478683027580834,0.0018353767835777859,15944,2069,False
+pool3,rotation_period,regression,mean,xgb,features_plus_mu,hann0p3_off,r2,6,0.8159697152257915,0.005517594084122058,0.004505096704632709,1318,-1,True
+pool3,rotation,detection,mean,xgb,mu,untrained,pr_auc,6,0.3695486841078673,0.004828361244782474,0.003942340447848829,15944,2069,False
+pool3,rotation_period,regression,mean,xgb,mu,untrained,r2,6,0.39846465984837937,0.027109294923331573,0.02213464661626159,1318,-1,True
+pool3,rotation,detection,mean,xgb,features_plus_mu,untrained,pr_auc,6,0.5055704161076173,0.003373113090961689,0.0027541353058527732,15944,2069,False
+pool3,rotation_period,regression,mean,xgb,features_plus_mu,untrained,r2,6,0.8167290619418356,0.0074637830087407875,0.00609415330742331,1318,-1,True

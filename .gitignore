@@ -39,6 +39,38 @@ experiments/c1c2_supervised/runs/
 # READMEs and docs/STATUS.md; the CSV/parquet themselves are regenerable from the analysis scripts.
 *.csv
 *.parquet
+# Exception: the aggregate score tables the paper's tables and figures are generated from
+# (experiments/plot_ml4ps_scorecard.py, plot_rotation_pool_appendix.py), plus the provenance CSVs
+# those scripts write to paper/build/. Under 1 MB together; the per-star parquets stay ignored.
+!/experiments/f1_fusion_scorecard/f1_absolute.csv
+!/experiments/f1_fusion_scorecard/f1_summary.csv
+!/experiments/f1_fusion_scorecard/f1_probe.csv
+!/experiments/f1_xgb_control/f1_absolute.csv
+!/experiments/f1_xgb_control/f1_summary.csv
+!/experiments/f1_xgb_control/f1_probe.csv
+!/experiments/c1c2_supervised/c1c2_absolute.csv
+!/experiments/c1c2_supervised/c1c2_summary.csv
+!/experiments/c1c2_supervised/c1c2_probe.csv
+!/experiments/unseen_pretraining/unseen_rescore.csv
+!/experiments/paper_bootstrap/paired_bootstrap.csv
+!/experiments/rotation_pool/absolute.csv
+!/experiments/rotation_pool/summary.csv
+!/experiments/rotation_pool/probe.csv
+!/experiments/rotation_pool/absolute_xgb.csv
+!/experiments/rotation_pool/summary_xgb.csv
+!/experiments/rotation_pool/probe_xgb.csv
+!/experiments/rotation_pool/verdict.csv
+!/experiments/rotation_pool/c1c2/c1c2_absolute.csv
+!/experiments/rotation_pool/c1c2/c1c2_summary.csv
+!/experiments/rotation_pool/c1c2/c1c2_probe.csv
+!/paper/build/*.csv
+# Internal review history of the paper and the frozen workshop submission: kept on disk, not
+# published. Anchored to /paper/ so no other `build/` or `wave*` directory is affected.
+/paper/.pairtex/
+/paper/build/wave*/
+/paper/build/theissen_0919/
+/paper/build/feedback_archive/
+/paper/build/submitted_ml4ps_2026/
 # LaTeX build artefacts of the paper. Anchored to /paper/ rather than a repo-wide `*.aux`: these
 # regenerate on every latexmk run, and the compiled main.pdf is committed deliberately as the
 # collaborator-facing draft.
