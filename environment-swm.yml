@@ -1,0 +1,28 @@
+# Stage 1/2 environment: pre-training, frozen-encoder extraction, probes, analysis and paper figures.
+# CUDA 12.1 build of PyTorch; for a CPU-only machine drop the --extra-index-url line and the +cu121
+# suffix. Stage 0 (download, windowing, label cross-match) uses environment.yml (`astro`) instead.
+name: swm
+channels:
+  - defaults
+dependencies:
+  - python=3.10
+  - pip
+  - pip:
+      - --extra-index-url https://download.pytorch.org/whl/cu121
+      - torch==2.5.1+cu121
+      - numpy==2.2.6
+      - pandas==2.3.3
+      - scipy==1.15.3
+      - scikit-learn==1.7.2
+      - xgboost==3.2.0
+      - hydra-core==1.3.2
+      - omegaconf==2.3.0
+      - wandb==0.27.0
+      - matplotlib==3.10.9
+      - pyarrow==24.0.0
+      - PyYAML==6.0.3
+      - tqdm==4.67.3
+      - umap-learn==0.5.12
+      - pytest==9.0.3
+      - ipykernel==7.3.0
+      - nbconvert==7.17.1
