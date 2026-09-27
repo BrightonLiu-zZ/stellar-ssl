@@ -30,6 +30,7 @@ needed to recompute them:
 | Paper artefact | Published values | Needs (not in the repository) |
 |---|---|---|
 | Appendix G paired bootstrap | `experiments/paper_bootstrap/paired_bootstrap.csv` | per-star prediction parquets |
+| Appendix J bootstrap sentence | `experiments/rotation_pool/bootstrap/paired_bootstrap.csv` | per-star prediction parquets |
 | Validation loss vs probe score (Figure 2, Appendix E) | `paper/build/figB_data.csv`, `figB_exp09_data.csv` | training-curve dumps of the exp05 and exp09 pre-training runs |
 | Reconstruction figure (Appendix F) | `paper/build/figD_recon_data.csv` | checkpoints and the light-curve corpus |
 
@@ -101,7 +102,7 @@ single-file manifests in `experiments/configs/`.
 
 | What | Size | Why |
 |---|---|---|
-| Light-curve corpus (`processed/sequences/`) and packed windows | — | regenerable from MAST with steps 1-2 and 6 |
+| Light-curve corpus (`processed/sequences/`) and packed windows | 14.6 GB in 416,729 `.npz` files, before packing | regenerable from MAST with steps 1-2 and 6 |
 | Label catalogues (`labels/`, `data/`) | 44 MB for `labels/` | third-party catalogues; regenerable with steps 3-4 |
 | Checkpoints, µ caches, per-star predictions (`experiments/**`) | 113 GB in total | size |
 | Training logs | — | Weights & Biases, not published |
