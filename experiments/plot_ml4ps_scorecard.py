@@ -54,16 +54,54 @@ encoder_family = "hann0p3_fbwd"
 dynamics_off_family = "hann0p3_off" # same recipe, latent-dynamics term removed; the Results ablation
 readout = "mean" # star-level pooling of per-window mu; `mean_std` is the reported alternative
 
+# The two rotation tasks are scored on the rotation pool (experiments/rotation_pool, pool 3), not the
+# first pool: the first pool holds no rotation-only star, so its rotators all carry a second label.
+rotation_tasks = ["rotation", "rotation_period"]
+rotation_pool_dir = Path("experiments/rotation_pool")
+
+
+def splice_rotation_pool(frame: pd.DataFrame, pool_frame: pd.DataFrame) -> pd.DataFrame:
+    """Replace the rotation tasks' rows of an F1-schema table with the same rows scored on pool 3."""
+    pool_rows = pool_frame[(pool_frame["block"] == "pool3") & pool_frame["task"].isin(rotation_tasks)]
+    assert set(pool_rows["task"]) == set(rotation_tasks), "rotation pool table is missing a task"
+    return pd.concat([frame[~frame["task"].isin(rotation_tasks)], pool_rows], ignore_index=True)
+
+
+def pin_untrained_to_i0(absolute: pd.DataFrame, probe: pd.DataFrame) -> pd.DataFrame:
+    """
+    Pool 3 scored six untrained inits and its tables average them; the paper's control is one encoder,
+    `untrained_i0` (footing check F2 matched it to the body's arm), so the rotation rows carry that
+    init's score with no band, as every other task's untrained row does.
+    """
+    absolute = absolute.copy()
+    probe = probe[(probe["block"] == "pool3") & (probe["arm"] == "untrained_i0")]
+    rows = absolute[(absolute["family"] == "untrained") & absolute["task"].isin(rotation_tasks)]
+    for index, row in rows.iterrows():
+        hit = probe[(probe["readout"] == row["readout"]) & (probe["arm_set"] == row["arm_set"])
+                    & (probe["task"] == row["task"])]
+        assert len(hit) == 1, f"untrained_i0 {row['task']}/{row['arm_set']}/{row['readout']}: {len(hit)} rows"
+        absolute.loc[index, ["score_mean", "score_sd", "score_2se", "n_seeds"]] = [hit[row["metric"]].iloc[0], 0.0, 0.0, 1]
+    return absolute
+
+
+def load_absolute(path: Path, pool_path: Path, pool_probe_path: Path) -> pd.DataFrame:
+    """An F1 absolute table with the rotation rows taken from pool 3 and the untrained arm pinned to i0."""
+    pool = pin_untrained_to_i0(pd.read_csv(pool_path), pd.read_csv(pool_probe_path))
+    return splice_rotation_pool(pd.read_csv(path), pool)
+
 
 def load_scorecard(f1_dir: Path, c1c2_dir: Path, xgb_dir: Path | None = None) -> pd.DataFrame:
     """
     Assemble one row per task carrying every arm printed in Table 1.
-    Linear arms come from F1's absolute table, the two supervised arms from the C1/C2 table.
+    Linear arms come from F1's absolute table, the two supervised arms from the C1/C2 table; the two
+    rotation tasks come from the same tables of the rotation pool.
     Returns the frame in `paper_tasks` order with score and 2*SE columns per arm.
     """
-    absolute = pd.read_csv(f1_dir / "f1_absolute.csv")
+    absolute = load_absolute(f1_dir / "f1_absolute.csv", rotation_pool_dir / "absolute.csv",
+                             rotation_pool_dir / "probe.csv")
     absolute = absolute[(absolute["readout"] == readout) & absolute["task"].isin(paper_tasks)]
     supervised = pd.read_csv(c1c2_dir / "c1c2_absolute.csv")
+    supervised = splice_rotation_pool(supervised, pd.read_csv(rotation_pool_dir / "c1c2" / "c1c2_absolute.csv"))
 
     linear_arms = {
         "features": ("features", "features_only"),
@@ -102,7 +140,8 @@ def load_scorecard(f1_dir: Path, c1c2_dir: Path, xgb_dir: Path | None = None) ->
     scorecard = pd.DataFrame(rows)
     if xgb_dir is not None:
         # The same three frozen arms scored with the XGBoost readout (experiments/f1_xgb_control).
-        xgb = pd.read_csv(xgb_dir / "f1_absolute.csv")
+        xgb = load_absolute(xgb_dir / "f1_absolute.csv", rotation_pool_dir / "absolute_xgb.csv",
+                            rotation_pool_dir / "probe_xgb.csv")
         xgb = xgb[(xgb["readout"] == readout) & (xgb["readout_family"] == "xgb")]
         xgb_arms = {"xgb_features": ("features", "features_only"), "xgb_mu": (encoder_family, "mu"),
                     "xgb_fusion": (encoder_family, "features_plus_mu")}
@@ -168,7 +207,8 @@ def dynamics_ablation(f1_dir: Path) -> pd.DataFrame:
     10 rather than 6 -- i.e. the paired form is the conservative one, which is why it is the one the
     Results paragraph quotes.
     """
-    summary = pd.read_csv(f1_dir / "f1_summary.csv")
+    summary = splice_rotation_pool(pd.read_csv(f1_dir / "f1_summary.csv"),
+                                   pd.read_csv(rotation_pool_dir / "summary.csv"))
     summary = summary[
         (summary["readout"] == readout)
         & (summary["contrast"] == "fusion_minus_features")
@@ -309,14 +349,23 @@ def write_readout_table(scorecard: pd.DataFrame, xgb_gain: pd.DataFrame, out_pat
     out_path.write_text("\n".join(header + lines + footer) + "\n", encoding="utf-8")
 
 
-def write_unseen_table(unseen_csv: Path, out_path: Path, seen_definition: str = "fit+val") -> None:
+def write_unseen_table(unseen_csv: Path, out_path: Path, scorecard: pd.DataFrame,
+                       seen_definition: str = "fit+val") -> None:
     """
     Emit the Appendix F table from experiments/analyze_unseen_rescore.py's output: the fusion gain on
     all test stars and on those never seen in pre-training (absent from its training and validation
     splits). Saved per-star predictions are filtered, nothing is refitted.
+
+    The rotation pool excludes every pre-training star by construction, so its two rows are the
+    scorecard's gain on both sides, with every test star unseen.
     """
     rows = pd.read_csv(unseen_csv)
     rows = rows[rows["seen_definition"] == seen_definition].set_index("task").loc[paper_tasks]
+    for task in rotation_tasks:
+        card = scorecard.set_index("task").loc[task]
+        rows.loc[task, ["n_test", "n_unseen"]] = [card["n_test"], card["n_test"]]
+        rows.loc[task, ["gain_all", "gain_unseen"]] = [card["d_features"], card["d_features"]]
+        rows.loc[task, ["gain_all_2se", "gain_unseen_2se"]] = [card["d_features_2se"], card["d_features_2se"]]
     lines = []
     for task, row in rows.iterrows():
         metric = {"numax_hon": "r2", "rotation_period": "r2", "rgb_vs_heb": "roc_auc"}.get(task, "pr_auc")
@@ -341,7 +390,8 @@ def load_xgb_gain(xgb_dir: Path) -> pd.DataFrame:
     nonlinear companion to panel (a). Paired per seed over the same six encoders, so its 2*SE band
     is read the same way as the linear arm's. Returned in `paper_tasks` order.
     """
-    summary = pd.read_csv(xgb_dir / "f1_summary.csv")
+    summary = splice_rotation_pool(pd.read_csv(xgb_dir / "f1_summary.csv"),
+                                   pd.read_csv(rotation_pool_dir / "summary_xgb.csv"))
     rows = summary[
         (summary["contrast"] == "fusion_minus_features")
         & (summary["readout"] == readout)
@@ -353,6 +403,13 @@ def load_xgb_gain(xgb_dir: Path) -> pd.DataFrame:
     assert set(trained.index) == set(paper_tasks), f"xgb summary missing {set(paper_tasks) - set(trained.index)}"
     gain = trained.loc[paper_tasks, ["delta_mean", "delta_2se"]].copy()
     gain["untrained_delta"] = untrained.loc[paper_tasks, "delta_mean"]
+    # Pool 3's untrained delta averages six inits; the paper's control is untrained_i0 alone.
+    absolute = load_absolute(xgb_dir / "f1_absolute.csv", rotation_pool_dir / "absolute_xgb.csv",
+                             rotation_pool_dir / "probe_xgb.csv")
+    absolute = absolute[(absolute["readout"] == readout) & absolute["task"].isin(rotation_tasks)]
+    for task in rotation_tasks:
+        score = absolute[absolute["task"] == task].set_index(["family", "arm_set"])["score_mean"]
+        gain.loc[task, "untrained_delta"] = score[("untrained", "features_plus_mu")] - score[("features", "features_only")]
     return gain.reset_index()
 
 
@@ -537,7 +594,7 @@ def main() -> None:
     (args.out_dir / "build").mkdir(parents=True, exist_ok=True)
     write_table(scorecard, args.out_dir / "tables" / "table1_scorecard.tex")
     write_readout_table(scorecard, readout_gain, args.out_dir / "tables" / "table_readout.tex")
-    write_unseen_table(args.unseen_csv, args.out_dir / "tables" / "table_unseen.tex")
+    write_unseen_table(args.unseen_csv, args.out_dir / "tables" / "table_unseen.tex", scorecard)
     plot_deltas(scorecard, args.out_dir / "figures" / f"{fig_stem}.pdf",
                 args.out_dir / "build" / f"{fig_stem}.png", xgb_gain=xgb_gain,
                 figsize=tuple(args.fig_size), font_size=args.font_size)
