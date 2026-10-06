@@ -64,6 +64,7 @@ PAPER_COLUMNS = {("fusion", "features"): ("d_features", "d_features_2se"),
 CONTRAST_LABEL = {"fusion-features": "fusion $-$ features", "untrained_fusion-features": "untrained fusion $-$ features",
                   "fusion-dynoff_fusion": "fusion $-$ dynamics-off fusion", "fusion-c1": "fusion $-$ C1",
                   "fusion-c2": "fusion $-$ C2", "mu-features": r"$\mu$ $-$ features"}
+ROTATION_TASKS = ["rotation", "rotation_period"]
 TASK_LABEL = {"pulsating": "pulsating", "eb": "eclipsing binary", "rotation": "rotation", "transit": "transit",
               "osc_giant": "oscillating giants", "solar_like_osc": "solar-like osc.", "rgb_vs_heb": r"RGB vs.\ HeB",
               "numax_hon": r"$\nu_{\max}$", "rotation_period": "rotation period", "flare": "flare"}
@@ -94,6 +95,14 @@ def arm_matrix(dumps: pd.DataFrame, family: str, arm_set: str, task: str,
             f"({len(one)} vs {len(tics)})")
         matrix[i] = one.reindex(tics).to_numpy()
     return matrix
+
+
+def splice_rotation_pool(out: pd.DataFrame, pool_csv: Path) -> pd.DataFrame:
+    """The paper scores the two rotation tasks on the rotation pool, so their rows come from that pool's
+    own bootstrap (experiments/rotation_pool/bootstrap, same contrasts, resamples and seed)."""
+    pool = pd.read_csv(pool_csv)
+    assert set(pool["task"]) == set(ROTATION_TASKS), f"{pool_csv}: expected only the rotation tasks"
+    return pd.concat([out[~out["task"].isin(ROTATION_TASKS)], pool], ignore_index=True)
 
 
 def write_tex(out: pd.DataFrame, path: Path) -> None:
@@ -128,9 +137,19 @@ def main() -> int:
     ap.add_argument("--tasks", nargs="+", default=PAPER_TASKS)
     ap.add_argument("--n-boot", type=int, default=1000)
     ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--rotation-pool-csv", default="experiments/rotation_pool/bootstrap/paired_bootstrap.csv",
+                    help="rotation-pool bootstrap whose rows replace the rotation tasks in the .tex; '' keeps them")
+    ap.add_argument("--tex-only", action="store_true",
+                    help="skip the resampling and rewrite the .tex from the existing paired_bootstrap.csv")
     args = ap.parse_args()
 
     in_dir = repo_root / args.in_dir
+    if args.tex_only:
+        out = pd.read_csv(in_dir / "paired_bootstrap.csv")
+        if args.rotation_pool_csv:
+            out = splice_rotation_pool(out, repo_root / args.rotation_pool_csv)
+        write_tex(out, repo_root / args.tex_out)
+        return 0
     dumps = pd.concat([pd.read_parquet(in_dir / "linear_star_scores.parquet"),
                        pd.read_parquet(in_dir / "c1c2_star_scores.parquet")], ignore_index=True)
     table = pd.read_csv(repo_root / args.table).set_index("task")
@@ -201,7 +220,8 @@ def main() -> int:
     with pd.option_context("display.width", 200, "display.max_rows", 200, "display.float_format",
                            "{:.4f}".format):
         print(show.to_string(index=False))
-    write_tex(out, repo_root / args.tex_out)
+    write_tex(splice_rotation_pool(out, repo_root / args.rotation_pool_csv) if args.rotation_pool_csv else out,
+              repo_root / args.tex_out)
     disagreements = out[(out["paper_verdict"] != "n/a") & (~out["agree"])]
     print(f"\nverdicts compared: {int((out['paper_verdict'] != 'n/a').sum())}, "
           f"disagreements: {len(disagreements)}")
