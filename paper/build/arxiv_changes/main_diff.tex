@@ -1,7 +1,7 @@
 \documentclass{article}
 %DIF LATEXDIFF DIFFERENCE FILE
-%DIF DEL build/arxiv_changes/old/main.tex   Sun Sep 27 15:53:47 2026
-%DIF ADD main.tex                           Sun Sep 27 14:03:18 2026
+%DIF DEL build/arxiv_changes/old/main.tex   Mon Oct  5 18:14:21 2026
+%DIF ADD main.tex                           Mon Oct  5 17:37:01 2026
 
 %DIF 3c3
 %DIF < \usepackage{neurips_2026}
@@ -60,7 +60,7 @@
   \DIFadd{Department of Astronomy and Astrophysics}\\
   \DIFadd{University of California, San Diego
 }\DIFaddend }
-
+ %DIF > 
 %DIF PREAMBLE EXTENSION ADDED BY LATEXDIFF
 %DIF UNDERLINE PREAMBLE %DIF PREAMBLE
 \RequirePackage[normalem]{ulem} %DIF PREAMBLE
@@ -164,7 +164,7 @@ they add to the engineered features. We pre-train a convolutional encoder on unl
 window's latent representation from those of its neighbours. We then freeze it, add its features to
 the 25 engineered features, and read the combination out with one fixed linear probe on ten tasks:
 five variability classes, four asteroseismic targets and rotation period. Adding the learned features
-improves the readout on 7 of 10 tasks over the engineered features alone, while an untrained encoder
+improves the readout on 7 of 10 tasks over the engineered features alone, \DIFdelbegin \DIFdel{while }\DIFdelend \DIFaddbegin \DIFadd{where }\DIFaddend an untrained encoder
 does not. The combination also outperforms two networks trained end-to-end on the same labelled
 stars on most tasks. An encoder trained without labels therefore gives astronomers new features
 that complement the ones they already use rather than replace them.
@@ -203,24 +203,28 @@ outperforms two networks trained end-to-end on the same labels. Our contribution
 \begin{itemize}
 \item \textbf{The learned features add to the engineered features rather than replacing them.}
 Adding the learned features to the engineered ones improves a fixed linear readout beyond
-$2\,\mathrm{SE}$ on 7 of 10 tasks; an untrained encoder gives no such gain, so the gain comes from pre-training,
-not from merely adding 128 columns.
+$2\,\mathrm{SE}$ on 7 of 10 tasks\DIFdelbegin \DIFdel{; }\DIFdelend \DIFaddbegin \DIFadd{, on each of which }\DIFaddend an untrained encoder gives no such gain, so the gain comes
+from pre-training, not from merely adding 128 columns.
 \item \textbf{The combined pipeline, read out by a fixed linear model, outperforms the two
 supervised networks we train end-to-end on the same labels on most tasks.} Against a supervised Conv1D with the
-encoder's architecture it is ahead on 6
-of 10 tasks and indistinguishable on the other 4; against an MLP on raw flux it is ahead on 9 of 10.
+encoder's architecture it is ahead on \DIFdelbegin \DIFdel{6
+}\DIFdelend \DIFaddbegin \DIFadd{7
+}\DIFaddend of 10 tasks and indistinguishable on the other \DIFdelbegin \DIFdel{4}\DIFdelend \DIFaddbegin \DIFadd{3}\DIFaddend ; against an MLP on raw flux it is ahead on \DIFdelbegin \DIFdel{9 }\DIFdelend \DIFaddbegin \DIFadd{8 }\DIFaddend of 10.
 \end{itemize}
 
 \section{Data and method}
 
 \paragraph{Data.} We use 2-minute SPOC PDCSAP light curves of stars brighter than TESS magnitude
-$T = 10$ from Sectors 27--101. Pre-training and five of the ten probes (pulsating, eclipsing binary,
-rotation, transit and rotation period) use a label-enriched subset of 13{,}470 stars, split 70/15/15
+$T = 10$ from Sectors 27--101. Pre-training and \DIFdelbegin \DIFdel{five }\DIFdelend \DIFaddbegin \DIFadd{three }\DIFaddend of the ten probes (pulsating, eclipsing
+binary \DIFdelbegin \DIFdel{,
+rotation, transit and rotation period}\DIFdelend \DIFaddbegin \DIFadd{and transit}\DIFaddend ) use a label-enriched subset of 13{,}470 stars, split 70/15/15
 by star: every star labelled as a transit host, eclipsing binary or pulsator that has a usable
 window, plus a random sample of 10{,}000 quiet stars, listed in none of our variability catalogues. The pre-training
-loss never sees a label, but this pool is label-enriched, not a random draw from the survey. The other five probes draw their labels from catalogues that barely overlap this subset and are scored on a second pool of 22{,}860 stars built the same way (every catalogue positive
-with a usable window plus 10{,}000 quiet stars, split 70/15/15). No test star of the first pool
-enters pre-training. \DIFaddbegin \DIFadd{The first pool admits positives only through the transit, eclipsing-binary and pulsating catalogues and screens its quiet stars against the rotation catalogue as well, so every rotator in it carries a second label and it holds no rotation-only star; Appendix~\ref{app:rotpool} rescores the two rotation tasks on a third pool of 106}{\DIFadd{,}}\DIFadd{284 stars, the corpus outside the first pool, where rotators are a natural 13\%. }\DIFaddend About 8\% of the second pool's test stars (265 of 3{,}429) were in the pre-training subset; removing them leaves all seven gains in place
+loss never sees a label, but this pool is label-enriched, not a random draw from the survey. \DIFdelbegin \DIFdel{The other five }\DIFdelend \DIFaddbegin \DIFadd{Five }\DIFaddend probes draw their labels from catalogues that barely overlap this subset and are scored on a second pool of 22{,}860 stars built the same way (every catalogue positive
+with a usable window plus 10{,}000 quiet stars, split 70/15/15). \DIFaddbegin \DIFadd{The two rotation probes are scored
+on the 106}{\DIFadd{,}}\DIFadd{284 corpus stars outside the first pool, split 70/15/15, where rotators are a natural
+13\% (Appendix~\ref{app:rotpool}). }\DIFaddend No test star of the first pool \DIFaddbegin \DIFadd{and no star of the rotation pool
+}\DIFaddend enters pre-training. About 8\% of the second pool's test stars (265 of 3{,}429) were in the pre-training subset; removing them leaves \DIFdelbegin \DIFdel{all seven gains }\DIFdelend \DIFaddbegin \DIFadd{every gain }\DIFaddend in place
 (Appendix~\ref{app:unseen}). Each light curve is split into contiguous segments wherever the time axis
 breaks, at a missing cadence or a jump longer than five median cadences; segments are
 median-normalised by their median absolute deviation and sliced into non-overlapping windows of 256
@@ -289,12 +293,16 @@ averaged; Appendix~\ref{app:bootstrap}) checks that no verdict hinges on the par
 inputs (Appendix~\ref{app:readout}). Bold: best point estimate of the three arms under each frozen
 readout\DIFaddbeginFL \DIFaddFL{, with no significance test attached; bold in the appendix tables instead marks a difference
 resolved beyond its error bar, so the two conventions are not interchangeable}\DIFaddendFL . $n$: test stars;
-prev.: positive-class prevalence.}
+prev.: positive-class prevalence. \DIFaddbeginFL \DIFaddFL{The two rotation rows are scored on the rotation pool at the
+survey's own rotator fraction; the other detection rows are case-control.}\DIFaddendFL }
 \label{tab:scorecard}
 \centering
 \scriptsize
 % GENERATED by experiments/plot_ml4ps_scorecard.py -- do not hand-edit
 \setlength{\tabcolsep}{3pt}
+\DIFdelbeginFL
+{\scriptsize\textcolor{red}{\textbf{ML4PS version:}}}\par\nobreak\smallskip
+\begingroup\color{red}
 \begin{tabular}{llrrrrrrrrr}
 \toprule
  & & & \multicolumn{3}{c}{frozen linear readout} & \multicolumn{3}{c}{frozen XGBoost readout} & \multicolumn{2}{c}{end-to-end supervised} \\
@@ -313,13 +321,35 @@ rotation period & $R^2$ & 150 & 0.703 & 0.677 & \textbf{0.717} & 0.695 & 0.655 &
 flare activity & PR-AUC & 3429 (0.089) & 0.474 & 0.453 & \textbf{0.524} & 0.562 & 0.485 & \textbf{0.565} & 0.533 & 0.444 \\
 \bottomrule
 \end{tabular}
+\endgroup\par\medskip
+{\scriptsize\textcolor{blue}{\textbf{arXiv version:}}}\par\nobreak\smallskip
+\DIFdelendFL \DIFaddbeginFL \begin{tabular}{llrrrrrrrrr}
+\toprule
+ & & & \multicolumn{3}{c}{frozen linear readout} & \multicolumn{3}{c}{frozen XGBoost readout} & \multicolumn{2}{c}{end-to-end supervised} \\
+\cmidrule(lr){4-6}\cmidrule(lr){7-9}\cmidrule(lr){10-11}
+task & metric & $n$ (prev.) & features & $\mu$ & features\,$\oplus$\,$\mu$ & features & $\mu$ & features\,$\oplus$\,$\mu$ & Conv1D & MLP \\
+\midrule
+pulsating & PR-AUC & 2021 (0.107) & 0.789 & 0.806 & \textbf{0.846} & \textbf{0.845} & 0.821 & 0.834 & 0.816 & 0.748 \\
+eclipsing binary & PR-AUC & 2021 (0.097) & 0.742 & 0.771 & \textbf{0.775} & 0.798 & 0.789 & \textbf{0.807} & 0.774 & 0.719 \\
+rotation & PR-AUC & 15944 (0.130) & 0.386 & 0.373 & \textbf{0.441} & \textbf{0.518} & 0.436 & 0.515 & 0.409 & 0.420 \\
+transit & PR-AUC & 2021 (0.060) & 0.190 & 0.144 & \textbf{0.218} & 0.217 & 0.223 & \textbf{0.228} & 0.134 & 0.109 \\
+oscillating giant & PR-AUC & 3429 (0.383) & \textbf{0.920} & 0.854 & 0.918 & \textbf{0.924} & 0.899 & 0.923 & 0.875 & 0.883 \\
+solar-like osc. & PR-AUC & 3429 (0.122) & 0.320 & 0.336 & \textbf{0.390} & \textbf{0.470} & 0.409 & 0.463 & 0.396 & 0.275 \\
+RGB vs. HeB & ROC-AUC & 161 (0.702) & \textbf{0.758} & 0.660 & 0.708 & 0.746 & 0.725 & \textbf{0.763} & 0.530 & 0.762 \\
+$\nu_{\max}$ & $R^2$ & 1313 & 0.831 & 0.802 & \textbf{0.867} & 0.916 & 0.831 & \textbf{0.919} & 0.832 & 0.834 \\
+rotation period & $R^2$ & 1318 & 0.718 & 0.636 & \textbf{0.752} & \textbf{0.829} & 0.729 & 0.825 & 0.697 & 0.773 \\
+flare activity & PR-AUC & 3429 (0.089) & 0.474 & 0.453 & \textbf{0.524} & 0.562 & 0.485 & \textbf{0.565} & 0.533 & 0.444 \\
+\bottomrule
+\end{tabular}
+\DIFaddendFL 
 
 \end{table}
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\linewidth]{figures/fig1_deltas_xgb.pdf}
-\caption{The two claims. \textbf{(a)} What the learned features add to the engineered features, under
+\DIFdelbeginFL \DIFdelFL{\includegraphics[width=\linewidth]{build/arxiv_changes/old/figures/ml4ps_fig1_deltas_xgb.pdf}
+}\DIFdelendFL \DIFaddbeginFL \DIFaddFL{\includegraphics[width=\linewidth]{figures/fig1_deltas_xgb.pdf}
+}\DIFaddendFL \caption{The two claims. \textbf{(a)} What the learned features add to the engineered features, under
 the fixed linear readout of Table~\ref{tab:scorecard} (solid) and under an XGBoost readout on the
 same inputs (faded; Appendix~\ref{app:readout}). \textbf{(b)} The fusion probe against the two
 supervised baselines. Bars are $2\,\mathrm{SE}$.}
@@ -329,45 +359,53 @@ supervised baselines. Bars are $2\,\mathrm{SE}$.}
 \paragraph{The learned features add to the engineered features.} Table~\ref{tab:scorecard} and
 Figure~\ref{fig:deltas}a give the comparison. Adding $\mu$ to the 25 features improves the
 fixed readout beyond $2\,\mathrm{SE}$ on 7 of 10 tasks, led by solar-like oscillators $+0.071$,
-pulsating $+0.057$ and flare activity $+0.051$, and reaching $+0.013$ ($R^{2}$) on rotation period.
-Rotation is positive but just short of the
-bar ($+0.016$ against $0.016$). \DIFaddbegin \DIFadd{On the rotation pool of Appendix~\ref{app:rotpool}, where the two classes differ in rotation and nothing else, the rotation gain is $+0.055 \pm 0.006$ but an untrained encoder also gains $+0.029$, so about half of it is what any 128 extra columns buy on 74}{\DIFadd{,}}\DIFadd{000 training stars; the rotation-period gain there is $+0.034 \pm 0.002$ with the untrained control at zero. Neither verdict moves the count. }\DIFaddend The two negative tasks are the ones where 128 extra columns cost more
+pulsating $+0.057$ and flare activity $+0.051$, and reaching \DIFdelbegin \DIFdel{$+0.013$ }\DIFdelend \DIFaddbegin \DIFadd{$+0.034$ }\DIFaddend ($R^{2}$) on rotation period.
+Rotation \DIFdelbegin \DIFdel{is positive but just short of the bar ($+0.016$ against $0.016$}\DIFdelend \DIFaddbegin \DIFadd{clears the bar too ($+0.055 \pm 0.006$) but does not count: an untrained encoder also gains
+$+0.029$ there ($+0.027 \pm 0.003$ over six random initialisations), so about half of the gain is
+what any 128 extra columns buy on 74}{\DIFadd{,}}\DIFadd{398 training stars. A gain counts only if the untrained
+control's gain on the same task stays within $2\,\mathrm{SE}$ of zero, a rule fixed before the
+rotation tasks were scored (Appendix~\ref{app:rotpool}}\DIFaddend ). The two negative tasks are the ones where 128 extra columns cost more
 than they add: the 25 features already cover the task (oscillating giants, $-0.003$ on a baseline
 of $0.920$) or the training set is too small to fit 128 more weights (RGB versus helium-burning, $-0.050$ on
 755 training stars). On both, an untrained encoder loses by about the same amount as the trained
 fusion, within the error band; that is what redundant columns do to a linear fit, not a sign that
 $\mu$ carries misleading content (Appendix~\ref{app:negatives}). Across all ten tasks the untrained control is
-negative on seven and never exceeds $+0.016$ (Table~\ref{tab:readout}), so the gains are not what any 128 extra columns would
+negative on \DIFdelbegin \DIFdel{seven and never }\DIFdelend \DIFaddbegin \DIFadd{six and }\DIFaddend exceeds $+0.016$ \DIFaddbegin \DIFadd{only on rotation }\DIFaddend (Table~\ref{tab:readout})\DIFdelbegin \DIFdel{, so the gains are }\DIFdelend \DIFaddbegin \DIFadd{; its spread over
+initialisations was measured on the two rotation tasks only, and elsewhere it is a single encoder. The
+gains that count are therefore }\DIFaddend not what any 128 extra columns would
 buy on this feature set; they are specific to what pre-training learned. $\mu$ on its own does not
-replace the features (ahead on only 4 of 10 tasks alone), as \citet{li2025staremb} also find for
+replace the features (ahead on only \DIFdelbegin \DIFdel{4 }\DIFdelend \DIFaddbegin \DIFadd{3 }\DIFaddend of 10 tasks alone), as \citet{li2025staremb} also find for
 time-series foundation models; we therefore report fusion rather than substitution \citep{makinen2024}.
 
 \paragraph{The fusion probe outperforms the two supervised networks on most tasks.} Against C1, which shares
 the convolutional trunk, labels and input windows but is trained end-to-end, the fusion
-probe is ahead on 6 of 10 tasks and indistinguishable from it on the other 4
-(Figure~\ref{fig:deltas}b). Against
-C2, an MLP on raw flux, it is ahead on 9 of 10 and behind on one (RGB versus helium-burning, 161
-stars). C1 is not weak: it is ahead of the engineered arm on 5 of 10.
-A paired star-bootstrap (Appendix~\ref{app:bootstrap}) excludes zero on 5 of the 7 fusion gains, 5
-of the 6 leads over C1 and 7 of the 9 over C2.
-This holds for this architecture on 669 to 16{,}002 labelled stars per task, not for
+probe is ahead on \DIFdelbegin \DIFdel{6 }\DIFdelend \DIFaddbegin \DIFadd{7 }\DIFaddend of 10 tasks and indistinguishable from it on the other \DIFdelbegin \DIFdel{4
+}\DIFdelend \DIFaddbegin \DIFadd{3
+}\DIFaddend (Figure~\ref{fig:deltas}b). Against
+C2, an MLP on raw flux, it is ahead on \DIFdelbegin \DIFdel{9 }\DIFdelend \DIFaddbegin \DIFadd{8 }\DIFaddend of 10 and behind on \DIFdelbegin \DIFdel{one }\DIFdelend \DIFaddbegin \DIFadd{two }\DIFaddend (RGB versus helium-burning, 161
+\DIFdelbegin \DIFdel{stars}\DIFdelend \DIFaddbegin \DIFadd{test stars, and rotation period, $0.752$ against $0.773$}\DIFaddend ). C1 is not weak: it is ahead of the engineered arm on 5 of 10.
+A paired star-bootstrap (Appendix~\ref{app:bootstrap}) excludes zero on \DIFdelbegin \DIFdel{5 }\DIFdelend \DIFaddbegin \DIFadd{6 }\DIFaddend of the 7 fusion gains \DIFdelbegin \DIFdel{, 5
+of the 6 }\DIFdelend \DIFaddbegin \DIFadd{that
+count, 6 of the 7 }\DIFaddend leads over C1 and \DIFdelbegin \DIFdel{7 of the 9 }\DIFdelend \DIFaddbegin \DIFadd{all 8 }\DIFaddend over C2.
+This holds for this architecture on \DIFdelbegin \DIFdel{669 to 16}\DIFdelend \DIFaddbegin \DIFadd{755 to 74}\DIFaddend {,}\DIFdelbegin \DIFdel{002 }\DIFdelend \DIFaddbegin \DIFadd{398 }\DIFaddend labelled stars per task, not for
 supervision in general.
 
 \paragraph{The GRU prediction term raises the gain on every task.} Removing the
 GRU prediction term, all else fixed and the same six
 seeds, reduces the fusion gain on all 10 tasks, and by more than $2\,\mathrm{SE}$ on 6 when the two
 arms are differenced seed by seed (Table~\ref{tab:readout}). Without it the gain falls by more
-than half on 5 of the 8 tasks where fusion gains.
+than half on \DIFdelbegin \DIFdel{5 }\DIFdelend \DIFaddbegin \DIFadd{4 }\DIFaddend of the 8 tasks where fusion gains.
 
 \section{Discussion}
 
 \paragraph{Pick the encoder by a held-out probe, not by its loss.} Across the ten pre-training recipes of
 one sweep, a lower validation reconstruction loss went with a \emph{lower} probe score: the Spearman
-$\rho$ between negated loss and PR-AUC runs from $-0.58$ to $-0.84$ over four tasks
-\DIFaddbegin \DIFadd{(Figure~\ref{fig:valloss_a})}\DIFaddend . The recipe with the
-lowest loss is the one without the prediction term on all four, and choosing it would cost
-$0.021$--$0.049$ PR-AUC\DIFaddbegin \DIFadd{. On the family our encoder belongs to the anti-correlation does not survive as
-such --- it holds on two of the four tasks and reverses on two --- but the loss optimum is still never
+$\rho$ between negated loss and PR-AUC runs from $-0.58$ to $-0.84$ over \DIFdelbegin \DIFdel{four tasks
+}\DIFdelend \DIFaddbegin \DIFadd{three tasks
+(Figure~\ref{fig:valloss_a})}\DIFaddend . The recipe with the
+lowest loss is the one without the prediction term on all \DIFdelbegin \DIFdel{four}\DIFdelend \DIFaddbegin \DIFadd{three}\DIFaddend , and choosing it would cost
+$0.021$--\DIFdelbegin \DIFdel{$0.049$ }\DIFdelend \DIFaddbegin \DIFadd{$0.035$ }\DIFaddend PR-AUC\DIFaddbegin \DIFadd{. On the family our encoder belongs to the anti-correlation does not survive as
+such --- it holds on two of the three tasks and reverses on one --- but the loss optimum is still never
 the probe optimum }\DIFaddend (Appendix~\ref{app:valloss}). \DIFaddbegin \DIFadd{The same objective carries a second cost: it develops
 a localised artifact inside each window, and none of the interventions we tried on four axes cleared
 both pre-registered acceptance criteria, so the recipe we ship does so by the stated fallback rule
@@ -378,11 +416,12 @@ chosen by a held-out probe, not by its own loss.
 \centering
 \DIFaddFL{\includegraphics[width=0.85\linewidth]{figures/figB_valloss_a.pdf}
 }\caption{\DIFaddFL{Validation reconstruction loss against downstream probe score, one point per pre-training
-recipe and one panel per task. The ten recipes share corpus, architecture and loss terms and differ
+recipe and one panel per task; the rotation tasks are absent because these recipes were never
+encoded on the pool rotation is scored on. The ten recipes share corpus, architecture and loss terms and differ
 only in the GRU prediction term (off, forward, forward+backward, multi-step, the last three at three
 weights), four seeds each. $x$: best post-warm-up validation reconstruction loss, averaged over the
 recipe's seeds; $y$: PR-AUC of the fixed linear probe on $\mu$; $\rho$: Spearman's rank correlation
-between negated loss and score. The loss-optimal recipe is the dynamics-free one (red) on all four
+between negated loss and score. The loss-optimal recipe is the dynamics-free one (red) on all three
 tasks, and it is the worst or next-to-worst probe on each. Appendix~\ref{app:valloss} repeats the
 measurement on the family this paper's encoder belongs to.}}
 \label{fig:valloss_a}
@@ -392,9 +431,10 @@ measurement on the family this paper's encoder belongs to.}}
 $\mu$, \texttt{features}\,$\oplus\,\mu$, and the untrained control) share one linear model. It has few
 parameters, so it cannot rescue weak features, and it is identical across the four, so the comparison
 is between feature sets. Our claim is confined to these 25 features and a linear readout: under
-XGBoost on the same inputs the gain exceeds $2\,\mathrm{SE}$ on 4 of 10 tasks and is negative on one\DIFaddbegin \DIFadd{;
+XGBoost on the same inputs the gain exceeds $2\,\mathrm{SE}$ on \DIFdelbegin \DIFdel{4 }\DIFdelend \DIFaddbegin \DIFadd{3 }\DIFaddend of 10 tasks and is negative on \DIFdelbegin \DIFdel{one
+}\DIFdelend \DIFaddbegin \DIFadd{two;
 where the nonlinear readout raises the features-only score, the $\mu$ gain falls, with a rank
-correlation of $0.92$ across the ten tasks }\DIFaddend (Appendix~\ref{app:readout}). \emph{Data.} Every arm,
+correlation of $0.87$ across the ten tasks }\DIFaddend (Appendix~\ref{app:readout}). \emph{Data.} Every arm,
 the supervised baselines included, sees one 5.7-day segment of a bright 2-minute star. The fainter,
 far more numerous stars in the full-frame images, and light curves spanning several sectors, are the
 obvious next experiments. \emph{Labels.} Our
@@ -667,10 +707,8 @@ and flare. The whole pool is split 70/15/15 by star within each stratum, and the
 pre-trained and monitored on this pool's training and validation splits.
 }
 
-\DIFadd{Note what the two clauses do differently. A star becomes a positive member only through the three
-detection catalogues; rotation and flare appear only as exclusions on the quiet draw. A rotator that
-is not also a transit host, eclipsing binary or pulsator is therefore neither admitted as a positive
-nor drawn as a quiet star, and is absent from this pool altogether. Appendix~\ref{app:rotpool} measures what this costs the two rotation rows.
+\DIFadd{Rotation and flare appear here only as exclusions on the quiet draw, so the rotation tasks are scored
+on a pool of their own (Appendix~\ref{app:rotpool}).
 }
 
 \paragraph{\DIFadd{The second pool (22}{\DIFadd{,}}\DIFadd{860 stars).}} \DIFadd{The four external catalogues behind the asteroseismic
@@ -798,16 +836,16 @@ task & metric & $+\mu$ & $+\mu$, no prediction term & retained & $+$untrained $\
 \midrule
 pulsating & PR-AUC & $\boldsymbol{+}\mathbf{0.057}$ & $\boldsymbol{+}\mathbf{0.051}$ & $0.89$ & ${+}0.016$ & ${-}0.011$ & ${-}0.003$ \\
 eclipsing binary & PR-AUC & $\boldsymbol{+}\mathbf{0.033}$ & $\boldsymbol{+}\mathbf{0.012}$ & $0.38$ & ${-}0.010$ & $\boldsymbol{+}\mathbf{0.010}$ & ${-}0.003$ \\
-rotation & PR-AUC & ${+}0.016$ & $\boldsymbol{-}\mathbf{0.011}$ & $-0.69$ & ${-}0.026$ & $\boldsymbol{-}\mathbf{0.020}$ & ${-}0.034$ \\
+rotation & PR-AUC & $\boldsymbol{+}\mathbf{0.055}$ & $\boldsymbol{+}\mathbf{0.036}$ & $0.65$ & ${+}0.029$ & $\boldsymbol{-}\mathbf{0.003}$ & ${-}0.010$ \\
 transit & PR-AUC & $\boldsymbol{+}\mathbf{0.027}$ & $\boldsymbol{+}\mathbf{0.018}$ & $0.66$ & ${+}0.004$ & ${+}0.011$ & ${-}0.027$ \\
 oscillating giant & PR-AUC & $\boldsymbol{-}\mathbf{0.003}$ & $\boldsymbol{-}\mathbf{0.006}$ & -- & ${-}0.003$ & ${-}0.001$ & ${-}0.008$ \\
 solar-like osc. & PR-AUC & $\boldsymbol{+}\mathbf{0.071}$ & $\boldsymbol{+}\mathbf{0.024}$ & $0.33$ & ${-}0.007$ & ${-}0.007$ & ${-}0.026$ \\
 RGB vs. HeB & ROC-AUC & $\boldsymbol{-}\mathbf{0.050}$ & $\boldsymbol{-}\mathbf{0.052}$ & -- & ${-}0.038$ & $\boldsymbol{+}\mathbf{0.016}$ & ${-}0.031$ \\
 $\nu_{\max}$ & $R^2$ & $\boldsymbol{+}\mathbf{0.036}$ & $\boldsymbol{+}\mathbf{0.010}$ & $0.29$ & ${-}0.001$ & $\boldsymbol{+}\mathbf{0.003}$ & ${-}0.005$ \\
-rotation period & $R^2$ & $\boldsymbol{+}\mathbf{0.013}$ & ${-}0.005$ & $-0.41$ & ${-}0.057$ & $\boldsymbol{+}\mathbf{0.036}$ & ${-}0.004$ \\
+rotation period & $R^2$ & $\boldsymbol{+}\mathbf{0.034}$ & $\boldsymbol{+}\mathbf{0.014}$ & $0.40$ & ${-}0.003$ & $\boldsymbol{-}\mathbf{0.004}$ & ${-}0.013$ \\
 flare activity & PR-AUC & $\boldsymbol{+}\mathbf{0.051}$ & $\boldsymbol{+}\mathbf{0.033}$ & $0.65$ & ${+}0.006$ & ${+}0.003$ & ${+}0.006$ \\
 \midrule
-win / tie / loss & & 7 / 1 / 2 & & & & 4 / 5 / 1 & \\
+win / tie / loss & & 8 / 0 / 2 & & & & 3 / 5 / 2 & \\
 \bottomrule
 \end{tabular}
 \DIFaddendFL 
@@ -815,9 +853,8 @@ win / tie / loss & & 7 / 1 / 2 & & & & 4 / 5 / 1 & \\
 \end{table}
 
 The \DIFaddbegin \DIFadd{retained column is the per-task form of the body's ablation count. On the eight tasks where
-fusion gains, removing the GRU prediction term leaves between $-0.69$ and $0.89$ of that gain, below
-half on five of them, and on two (rotation and rotation period) the remainder is negative, so the
-ablated encoder's columns are worse than not adding them at all. We give the eight fractions rather
+fusion gains, removing the GRU prediction term leaves between $0.29$ and $0.89$ of that gain, below
+half on four of them; on none does the gain change sign. We give the eight fractions rather
 than one summary number because the ten gains are measured in PR-AUC, ROC-AUC and $R^{2}$ and cannot
 be added together.
 }
@@ -830,17 +867,17 @@ the seed, through the validation split, so the gain is differenced seed by seed.
 
 Under XGBoost the $\mu$ gain (features\,$\oplus\,\mu$ minus features alone) is smaller than under the
 linear readout on most tasks. XGBoost also scores higher than the linear readout on the 25 features
-alone on eight of ten tasks, and the two changes go together. On solar-like oscillators the features-only score rises from
+alone on \DIFdelbegin \DIFdel{eight }\DIFdelend \DIFaddbegin \DIFadd{nine }\DIFaddend of ten tasks, and the two changes go together. On solar-like oscillators the features-only score rises from
 0.320 to 0.470 and the $\mu$ gain falls from $+0.071$ to $-0.007$. On RGB versus helium-burning,
 where XGBoost does not raise the features-only score, the $\mu$ gain is larger under XGBoost. Across
 the ten tasks, the rise in the features-only score and the fall in the $\mu$ gain have a Spearman rank
-correlation of 0.92. This is consistent with part of the information $\mu$ supplies to a linear
+correlation of \DIFdelbegin \DIFdel{0.92}\DIFdelend \DIFaddbegin \DIFadd{0.87}\DIFaddend . This is consistent with part of the information $\mu$ supplies to a linear
 readout being already present in the 25 features, in a form only a nonlinear readout can use.
 
 Table~\ref{tab:readout} also gives the same comparison with an untrained encoder in place of the
 trained one. Under XGBoost its 128 columns lower the score on nine of ten tasks and the trained $\mu$
 scores above it on eight, so the gains that survive come from pre-training, not from adding columns.
-XGBoost on the 25 features alone also scores above the linear fusion probe on 7 of 10 tasks
+XGBoost on the 25 features alone also scores above the linear fusion probe on \DIFdelbegin \DIFdel{7 }\DIFdelend \DIFaddbegin \DIFadd{8 }\DIFaddend of 10 tasks
 (Table~\ref{tab:scorecard}). The body's claim is about what $\mu$ adds under a fixed linear readout,
 not that the linear fusion probe is the strongest classifier available on these features.
 
@@ -849,7 +886,7 @@ not that the linear fusion probe is the strongest classifier available on these 
 \DIFdelbegin %DIFDELCMD < \begin{figure}[H]
 %DIFDELCMD < \centering
 %DIFDELCMD < %%%
-\DIFdelFL{\includegraphics[width=\linewidth]{figures/figB_valloss.pdf}
+\DIFdelFL{\includegraphics[width=\linewidth]{build/arxiv_changes/old/figures/ml4ps_figB_valloss.pdf}
 }%DIFDELCMD < \caption{%
 {%DIFAUXCMD
 \DIFdelFL{One point per pre-training recipe (mean over its seeds), one panel per task. (a) The
@@ -874,10 +911,11 @@ In row (a)
 other half, and the two differ in which family of recipes is varied.
 }
 
-\DIFadd{In Figure~\ref{fig:valloss_a} }\DIFaddend the loss-optimal recipe is the dynamics-free one \DIFdelbegin \DIFdel{(red cross) }\DIFdelend on all four tasks, and
-it is the worst or next-to-worst probe on each, so selecting on the loss costs $0.021$--$0.049$
-PR-AUC against the probe-optimal recipe. The trend is not carried by that one point: with it removed,
-$\rho$ still runs from $-0.43$ to $-0.87$. Those recipes are an earlier sweep than our encoder \DIFdelbegin \DIFdel{(}\DIFdelend \DIFaddbegin \DIFadd{--
+\DIFadd{In Figure~\ref{fig:valloss_a} }\DIFaddend the loss-optimal recipe is the dynamics-free one \DIFdelbegin \DIFdel{(red cross) on all four }\DIFdelend \DIFaddbegin \DIFadd{on all three }\DIFaddend tasks, and
+it is the worst or next-to-worst probe on each, so selecting on the loss costs $0.021$--\DIFdelbegin \DIFdel{$0.049$ }\DIFdelend \DIFaddbegin \DIFadd{$0.035$
+}\DIFaddend PR-AUC against the probe-optimal recipe. The trend is not carried by that one point: with it removed,
+$\rho$ still runs from \DIFdelbegin \DIFdel{$-0.43$ }\DIFdelend \DIFaddbegin \DIFadd{$-0.47$ }\DIFaddend to $-0.87$. \DIFaddbegin \DIFadd{Both figures leave out the rotation tasks, which are
+scored on a pool these recipes were never encoded on. }\DIFaddend Those recipes are an earlier sweep than our encoder \DIFdelbegin \DIFdel{(}\DIFdelend \DIFaddbegin \DIFadd{--
 }\DIFaddend they carry an earlier spectral auxiliary term \DIFdelbegin \DIFdel{), so row (b) }\DIFdelend \DIFaddbegin \DIFadd{-- so Figure~\ref{fig:valloss_b} }\DIFaddend repeats the estimator
 on the family we ship: 19 recipes built on the final encoder that vary the form, weight and floor of
 the auxiliary term, six seeds each (two more recipes in which one seed collapsed are excluded; we
@@ -896,11 +934,12 @@ linear probe on $\mu$; $\rho$: Spearman's rank correlation between negated loss 
 \end{figure}
 
 \DIFaddend There the anti-correlation does not persist as such: $\rho$ is $-0.51$ on pulsating and $-0.50$ on
-transit, $+0.37$ on eclipsing binaries and $+0.11$ on rotation. What persists is that the loss is not
+transit \DIFdelbegin \DIFdel{,
+}\DIFdelend \DIFaddbegin \DIFadd{but }\DIFaddend $+0.37$ on eclipsing binaries\DIFdelbegin \DIFdel{and $+0.11$ on rotation}\DIFdelend . What persists is that the loss is not
 a selector: its optimum is again the recipe with the weakest competing term (the diamond, no
-auxiliary term at all), which is never the probe optimum, and trusting it costs $0.011$--$0.034$
-PR-AUC. So \DIFdelbegin \DIFdel{row (a) }\DIFdelend \DIFaddbegin \DIFadd{the body's figure }\DIFaddend shows an anti-correlation on every task; \DIFdelbegin \DIFdel{in row (b) it survives }\DIFdelend \DIFaddbegin \DIFadd{this one shows it surviving }\DIFaddend on
-two tasks and \DIFdelbegin \DIFdel{reverses }\DIFdelend \DIFaddbegin \DIFadd{reversing }\DIFaddend on two; in neither does the loss choose. Both are statements across recipes
+auxiliary term at all), which is never the probe optimum, and trusting it costs $0.011$--\DIFdelbegin \DIFdel{$0.034$ }\DIFdelend \DIFaddbegin \DIFadd{$0.031$
+}\DIFaddend PR-AUC. So \DIFdelbegin \DIFdel{row (a) }\DIFdelend \DIFaddbegin \DIFadd{the body's figure }\DIFaddend shows an anti-correlation on every task; \DIFdelbegin \DIFdel{in row (b) it survives }\DIFdelend \DIFaddbegin \DIFadd{this one shows it surviving }\DIFaddend on
+two tasks and \DIFdelbegin \DIFdel{reverses on two}\DIFdelend \DIFaddbegin \DIFadd{reversing on one}\DIFaddend ; in neither does the loss choose. Both are statements across recipes
 only: within one recipe, across its seeds, no label-free curve metric we tried (reconstruction,
 reconstruction plus auxiliary, active latent units) ranks the seeds, every such correlation sitting
 within $\pm 0.3$ of zero.
@@ -998,9 +1037,12 @@ saved per-star predictions (no model is retrained), average each arm over its se
 difference. Table~\ref{tab:bootstrap} gives the 95\% percentile interval of that difference and the
 share of resamples in which the fusion arm is ahead; intervals that exclude zero are bold. The check
 tightens no verdict and reverses none: every row the body calls ahead has the fusion arm ahead in at
-least 65\% of resamples. It does loosen the smallest tasks -- rotation period (150 test stars) and
-RGB versus helium-burning (161) account for four of the ten rows where a resolved $2\,\mathrm{SE}$
-verdict becomes an interval that touches zero.
+least \DIFdelbegin \DIFdel{65}\DIFdelend \DIFaddbegin \DIFadd{85}\DIFaddend \% of resamples. It does loosen \DIFdelbegin \DIFdel{the smallest tasks -- rotation period (150 test stars) and
+RGB versus helium-burning (161) account for four of the ten rows where }\DIFdelend \DIFaddbegin \DIFadd{five of the 40 verdicts, each }\DIFaddend a resolved $2\,\mathrm{SE}$
+verdict \DIFdelbegin \DIFdel{becomes an interval that touches zero}\DIFdelend \DIFaddbegin \DIFadd{whose interval touches zero: the gain on transit and the loss on oscillating giants over the
+features, the lead over C1 on
+pulsating, the loss to C2 on RGB versus helium-burning (161 test stars), and the dynamics contrast on
+flare activity}\DIFaddend .
 
 \begin{table}[H]
 \caption{Paired star-bootstrap of the four contrasts the body counts. Each entry is the 95\% interval
@@ -1012,6 +1054,9 @@ resample, 0.00 that it is behind in every resample). Bold: interval excludes zer
 \scriptsize
 \setlength{\tabcolsep}{2pt}
 % GENERATED by experiments/analyze_paper_bootstrap.py -- do not hand-edit
+\DIFdelbeginFL
+{\scriptsize\textcolor{red}{\textbf{ML4PS version:}}}\par\nobreak\smallskip
+\begingroup\color{red}
 \begin{tabular}{lrrrrrrrr}
 \toprule
 task & \multicolumn{2}{c}{fusion $-$ features} & \multicolumn{2}{c}{fusion $-$ C1} & \multicolumn{2}{c}{fusion $-$ C2} & \multicolumn{2}{c}{fusion $-$ dynamics-off fusion} \\
@@ -1029,6 +1074,26 @@ rotation period & $[-0.038, +0.067]$ & 0.65 & $\mathbf{[+0.054, +0.186]}$ & 1.00
 flare & $\mathbf{[+0.019, +0.078]}$ & 1.00 & $[-0.047, +0.029]$ & 0.32 & $\mathbf{[+0.027, +0.128]}$ & 1.00 & $[-0.000, +0.035]$ & 0.97 \\
 \bottomrule
 \end{tabular}
+\endgroup\par\medskip
+{\scriptsize\textcolor{blue}{\textbf{arXiv version:}}}\par\nobreak\smallskip
+\DIFdelendFL \DIFaddbeginFL \begin{tabular}{lrrrrrrrr}
+\toprule
+task & \multicolumn{2}{c}{fusion $-$ features} & \multicolumn{2}{c}{fusion $-$ C1} & \multicolumn{2}{c}{fusion $-$ C2} & \multicolumn{2}{c}{fusion $-$ dynamics-off fusion} \\
+ & 95\% CI & $f_{>0}$ & 95\% CI & $f_{>0}$ & 95\% CI & $f_{>0}$ & 95\% CI & $f_{>0}$ \\
+\midrule
+pulsating & $\mathbf{[+0.012, +0.105]}$ & 0.99 & $[-0.008, +0.073]$ & 0.94 & $\mathbf{[+0.045, +0.150]}$ & 1.00 & $[-0.023, +0.036]$ & 0.69 \\
+eclipsing binary & $\mathbf{[+0.005, +0.062]}$ & 0.99 & $[-0.024, +0.025]$ & 0.52 & $\mathbf{[+0.022, +0.094]}$ & 1.00 & $\mathbf{[+0.004, +0.038]}$ & 0.99 \\
+rotation & $\mathbf{[+0.043, +0.066]}$ & 1.00 & $\mathbf{[+0.017, +0.048]}$ & 1.00 & $\mathbf{[+0.005, +0.039]}$ & 0.99 & $\mathbf{[+0.014, +0.025]}$ & 1.00 \\
+transit & $[-0.025, +0.065]$ & 0.85 & $\mathbf{[+0.041, +0.124]}$ & 1.00 & $\mathbf{[+0.046, +0.174]}$ & 1.00 & $[-0.016, +0.035]$ & 0.78 \\
+oscillating giants & $[-0.010, +0.005]$ & 0.21 & $\mathbf{[+0.028, +0.057]}$ & 1.00 & $\mathbf{[+0.021, +0.051]}$ & 1.00 & $[-0.002, +0.008]$ & 0.87 \\
+solar-like osc. & $\mathbf{[+0.044, +0.097]}$ & 1.00 & $[-0.037, +0.022]$ & 0.34 & $\mathbf{[+0.079, +0.151]}$ & 1.00 & $\mathbf{[+0.025, +0.067]}$ & 1.00 \\
+RGB vs.\ HeB & $\mathbf{[-0.087, -0.012]}$ & 0.00 & $\mathbf{[+0.099, +0.247]}$ & 1.00 & $[-0.126, +0.020]$ & 0.08 & $[-0.037, +0.039]$ & 0.52 \\
+$\nu_{\max}$ & $\mathbf{[+0.028, +0.043]}$ & 1.00 & $\mathbf{[+0.024, +0.045]}$ & 1.00 & $\mathbf{[+0.018, +0.047]}$ & 1.00 & $\mathbf{[+0.020, +0.031]}$ & 1.00 \\
+rotation period & $\mathbf{[+0.023, +0.046]}$ & 1.00 & $\mathbf{[+0.039, +0.073]}$ & 1.00 & $\mathbf{[-0.038, -0.004]}$ & 0.01 & $\mathbf{[+0.014, +0.027]}$ & 1.00 \\
+flare & $\mathbf{[+0.019, +0.078]}$ & 1.00 & $[-0.047, +0.029]$ & 0.32 & $\mathbf{[+0.027, +0.128]}$ & 1.00 & $[-0.000, +0.035]$ & 0.97 \\
+\bottomrule
+\end{tabular}
+\DIFaddendFL 
 
 \end{table}
 
@@ -1116,10 +1181,11 @@ published accuracy came from an ensemble we do not run.
 
 The encoder is fitted on the training stars of the first pool and monitored on its validation stars,
 so the test stars of
-the five tasks scored on that pool are unseen by construction. The second pool shares some stars with
+the \DIFdelbegin \DIFdel{five }\DIFdelend \DIFaddbegin \DIFadd{three }\DIFaddend tasks scored on that pool are unseen by construction\DIFaddbegin \DIFadd{, and the rotation pool excludes every
+pre-training star}\DIFaddend . The second pool shares some stars with
 it. Table~\ref{tab:unseen} removes every test star that was in the pre-training training or validation
 split and rescores the saved per-star predictions; no model is refitted. The gain exceeds
-$2\,\mathrm{SE}$ on the same 7 of 10 tasks; the largest change is flare activity, $+0.051$ to
+$2\,\mathrm{SE}$ on the same \DIFdelbegin \DIFdel{7 of 10 tasks }\DIFdelend \DIFaddbegin \DIFadd{tasks as before}\DIFaddend ; the largest change is flare activity, $+0.051$ to
 $+0.041$, and the small loss on oscillating giants ($-0.003$) becomes a tie ($-0.001$).
 
 \begin{table}[H]
@@ -1129,6 +1195,9 @@ on the test stars never seen in pre-training. Bold: beyond $2\,\mathrm{SE}$ over
 \centering
 \scriptsize
 % GENERATED by experiments/plot_ml4ps_scorecard.py -- do not hand-edit
+\DIFdelbeginFL
+{\scriptsize\textcolor{red}{\textbf{ML4PS version:}}}\par\nobreak\smallskip
+\begingroup\color{red}
 \begin{tabular}{llrrrr}
 \toprule
 task & metric & test stars & unseen test stars & gain, all & gain, unseen \\
@@ -1145,26 +1214,31 @@ rotation period & $R^2$ & 150 & 150 & $\boldsymbol{+}\mathbf{0.013}$ & $\boldsym
 flare activity & PR-AUC & 3429 & 3164 & $\boldsymbol{+}\mathbf{0.051}$ & $\boldsymbol{+}\mathbf{0.041}$ \\
 \bottomrule
 \end{tabular}
-\DIFaddbeginFL 
+\endgroup\par\medskip
+{\scriptsize\textcolor{blue}{\textbf{arXiv version:}}}\par\nobreak\smallskip
+\DIFdelendFL \DIFaddbeginFL \begin{tabular}{llrrrr}
+\toprule
+task & metric & test stars & unseen test stars & gain, all & gain, unseen \\
+\midrule
+pulsating & PR-AUC & 2021 & 2021 & $\boldsymbol{+}\mathbf{0.057}$ & $\boldsymbol{+}\mathbf{0.057}$ \\
+eclipsing binary & PR-AUC & 2021 & 2021 & $\boldsymbol{+}\mathbf{0.033}$ & $\boldsymbol{+}\mathbf{0.033}$ \\
+rotation & PR-AUC & 15944 & 15944 & $\boldsymbol{+}\mathbf{0.055}$ & $\boldsymbol{+}\mathbf{0.055}$ \\
+transit & PR-AUC & 2021 & 2021 & $\boldsymbol{+}\mathbf{0.027}$ & $\boldsymbol{+}\mathbf{0.027}$ \\
+oscillating giant & PR-AUC & 3429 & 3164 & $\boldsymbol{-}\mathbf{0.003}$ & ${-}0.001$ \\
+solar-like osc. & PR-AUC & 3429 & 3164 & $\boldsymbol{+}\mathbf{0.071}$ & $\boldsymbol{+}\mathbf{0.069}$ \\
+RGB vs. HeB & ROC-AUC & 161 & 149 & $\boldsymbol{-}\mathbf{0.050}$ & $\boldsymbol{-}\mathbf{0.048}$ \\
+$\nu_{\max}$ & $R^2$ & 1313 & 1218 & $\boldsymbol{+}\mathbf{0.036}$ & $\boldsymbol{+}\mathbf{0.034}$ \\
+rotation period & $R^2$ & 1318 & 1318 & $\boldsymbol{+}\mathbf{0.034}$ & $\boldsymbol{+}\mathbf{0.034}$ \\
+flare activity & PR-AUC & 3429 & 3164 & $\boldsymbol{+}\mathbf{0.051}$ & $\boldsymbol{+}\mathbf{0.041}$ \\
+\bottomrule
+\end{tabular}
 
 \end{table}
 
-\section{\DIFadd{The two rotation tasks on a pool that contains rotation-only stars}}
+\section{\DIFadd{The rotation pool}}
 \label{app:rotpool}
 
-\paragraph{\DIFadd{The defect.}} \DIFadd{As Appendix~\ref{app:pools} states, the first pool admits a star as a positive
-only through the transit, eclipsing-binary and pulsating catalogues, and its quiet draw excludes every
-star the rotation catalogue lists. All 1}{\DIFadd{,}}\DIFadd{138 rotators in that pool are therefore also transit hosts,
-eclipsing binaries or pulsators (607, 383 and 148 by split stratum), and none of its 10}{\DIFadd{,}}\DIFadd{000 quiet
-stars rotates. A readout can separate the two classes of the }\emph{\DIFadd{rotation}} \DIFadd{task by detecting the
-co-occurring class, and the }\emph{\DIFadd{rotation period}} \DIFadd{task is fitted on the same co-labelled rotators
-(669 training, 150 test). The ML4PS version of this paper scored both tasks on that pool; the body
-above still prints those numbers, and this appendix reports the same two tasks on a pool built to
-remove the defect. The design, the population, the arms, the readouts and the rule for reading the
-result were fixed in writing before any score on the new pool was computed.
-}
-
-\paragraph{\DIFadd{The rotation pool.}} \DIFadd{Every corpus star with at least one usable window that is not in the
+\paragraph{\DIFadd{Construction.}} \DIFadd{Every corpus star with at least one usable window that is not in the
 first pool: 106}{\DIFadd{,}}\DIFadd{284 stars, of which 13}{\DIFadd{,}}\DIFadd{789 carry a rotation period in the TESS All-Sky Rotation
 Survey \mbox{%DIFAUXCMD
 \citep{boyle2026} }\hskip0pt%DIFAUXCMD
@@ -1173,11 +1247,12 @@ eclipsing binary or pulsator (the first pool took every one), no star that enter
 no sampling step: rotators are 13.0\% of it, against 12.5\% of the corpus, so both rotation tasks are
 scored at the survey's own prevalence rather than the case-control prevalence of the other pools. It
 is split 70/15/15 by star, stratified on rotators with period at most five days (8}{\DIFadd{,}}\DIFadd{786), other
-rotators (5}{\DIFadd{,}}\DIFadd{003) and non-rotators, seed 0. Rotation period keeps the five-day cap of the body. A
-non-rotator here is a star the survey does not list, not a star examined and found not to rotate;
-this is the same label limitation that bounds the body's rotation row. No encoder is run again: the
-per-star encoder outputs and the 25 engineered features for these stars had been cached for the
-survey-prevalence check of }\S4\DIFadd{, and the readouts are the body's, refitted on the new training split.
+rotators (5}{\DIFadd{,}}\DIFadd{003) and non-rotators, seed 0. The rotation-period task keeps the rotators with period
+at most five days. A non-rotator here is a star the survey does not list, not a star examined and
+found not to rotate. No encoder is run again: the per-star encoder outputs and the 25 engineered
+features for these stars had been cached for an earlier survey-prevalence rescore, and the readouts
+are the body's, fitted on this pool's training split. The design, the arms, the readouts and the rule
+for reading the result were fixed in writing before any score on this pool was computed.
 }
 
 \DIFadd{Two properties still differ between the classes besides rotation, both astrophysical rather than
@@ -1188,40 +1263,30 @@ refit the readout with flare stars removed from both classes, and with the posit
 stars in no non-rotation catalogue and the negatives to stars in no catalogue at all.
 }
 
-\paragraph{\DIFadd{Result.}} \DIFadd{Table~\ref{tab:rotpool} gives both tasks on the first pool and on the rotation
-pool, every column of Table~\ref{tab:scorecard} included. Three things change and one does not.
-The engineered-feature score on the rotation task falls from 0.540 to 0.386: the first pool's
-negatives are stars in no catalogue, the rotation pool's negatives are every non-rotator in the
-survey, and the second is the harder set. The fusion gain on rotation rises from $+0.016 \pm 0.016$
-to $+0.055 \pm 0.006$, but an untrained encoder now also gains $+0.029$ (init spread $+0.027 \pm
-0.003$ over six inits) where on the first pool it lost $0.026$; with 74}{\DIFadd{,}}\DIFadd{398 training stars, 128
-random columns are no longer redundant to a linear fit. The trained encoder is ahead of the untrained
-one by $+0.029 \pm 0.008$, paired by seed. Because the pre-registered rule for these two rows requires
-the untrained control to stay within $2\,\mathrm{SE}$ of zero, rotation does not count, as it did
-not before. Rotation period does count on both pools, and more clearly on the new one: $+0.034 \pm
-0.002$ on 1}{\DIFadd{,}}\DIFadd{318 test stars against $+0.013 \pm 0.010$ on 150, with the untrained control at
-$-0.003$. The body's count of 7 of 10 is therefore unchanged. The two sensitivity rows agree with the
-headline on both verdicts. The dynamics-off contrast keeps its sign on both tasks ($+0.019 \pm 0.007$
-and $+0.020 \pm 0.003$), and a paired star-bootstrap of every contrast in the table
-(1}{\DIFadd{,}}\DIFadd{000 resamples, as in Appendix~\ref{app:bootstrap}) agrees with every seed-band verdict.
+\paragraph{\DIFadd{The counting rule.}} \DIFadd{A gain on these two tasks counts only if (i) it exceeds
+$2\,\mathrm{SE}$, (ii) the untrained control's own gain stays within $2\,\mathrm{SE}$ of zero, and
+(iii) the trained-minus-untrained difference, paired seed $s$ with initialisation $s$, exceeds
+$2\,\mathrm{SE}$. Clause (ii) needs the untrained encoder's spread, so six random initialisations
+were scored here; Table~\ref{tab:scorecard} prints the first of them, the same initialisation as
+every other task's untrained arm.
 }
 
-\DIFadd{Two of the body's other tallies would change if the rotation pool replaced the first pool in
-Table~\ref{tab:scorecard}, and are stated here so the reader can recount. Under XGBoost the fusion
-gain on rotation period turns from $+0.036$ to $-0.004 \pm 0.003$ (the features alone reach 0.829),
-so Appendix~\ref{app:readout}'s tally of 4 wins, 5 ties and 1 loss becomes 3, 5 and 2. Against the
-raw-flux MLP the fusion probe is behind on rotation period (0.752 against 0.773, $-0.021 \pm 0.004$),
-so ``ahead on 9 of 10'' becomes 8 of 10; it stays ahead of the convolutional baseline on both tasks.
-Under the linear readout the untrained control's largest gain across the ten tasks becomes the
-$+0.029$ above rather than the $+0.016$ the body quotes; that sentence's conclusion, that the gains
-which count are not what 128 arbitrary columns buy, is what the rule of this appendix enforces
-explicitly.
+\paragraph{\DIFadd{Result.}} \DIFadd{Table~\ref{tab:rotpool} gives both tasks with the two sensitivity rows. On
+rotation the fusion gain is $+0.055 \pm 0.006$ and the trained encoder is ahead of the untrained one
+by $+0.029 \pm 0.008$, but the untrained encoder itself gains $+0.027 \pm 0.003$ over its six
+initialisations: with 74}{\DIFadd{,}}\DIFadd{398 training stars, 128 random columns are no longer redundant to a linear
+fit. Clause (ii) fails, so rotation does not count. On rotation period the gain is $+0.034 \pm 0.002$
+on 1}{\DIFadd{,}}\DIFadd{318 test stars, the untrained control is at $-0.003$ and the paired difference is
+$+0.037 \pm 0.003$, so it counts. The two sensitivity rows agree with the headline on both verdicts.
+The dynamics-off contrast is positive on both tasks ($+0.019 \pm 0.007$ and $+0.020 \pm 0.003$), and
+a paired star-bootstrap of every contrast in the table (1}{\DIFadd{,}}\DIFadd{000 resamples, as in
+Appendix~\ref{app:bootstrap}) agrees with every seed-band verdict.
 }
 
 \begin{table}[H]
-\caption{\DIFaddFL{The two rotation tasks on the first pool (the body's numbers) and on the rotation pool.
-Linear and XGBoost readouts and the two supervised baselines are those of Table~\ref{tab:scorecard};
-gain = features\,$\oplus\,\mu$ minus features, mean over six encoder seeds, bold beyond
+\caption{\DIFaddFL{The two rotation tasks on the rotation pool. The ``all stars'' rows are those of
+Table~\ref{tab:scorecard}; linear and XGBoost readouts and the two supervised baselines are as there.
+Gain = features\,$\oplus\,\mu$ minus features, mean over six encoder seeds, bold beyond
 $2\,\mathrm{SE}$; untrained gain = the same with the untrained encoder. Sensitivity rows refit the
 linear readout on the restricted population. $n$: test stars; prev.: rotator prevalence.}}
 \label{tab:rotpool}
@@ -1235,13 +1300,11 @@ linear readout on the restricted population. $n$: test stars; prev.: rotator pre
 \cmidrule(lr){4-8}\cmidrule(lr){9-10}\cmidrule(lr){11-12}
 task & population & $n$ (prev.) & features & $\mu$ & fusion & gain & untr.\ gain & features & fusion & Conv1D & MLP \\
 \midrule
-rotation (PR-AUC) & first pool & 2021 (0.089) & 0.540 & 0.559 & 0.555 & $+0.016$ & $-0.026$ & 0.596 & 0.576 & 0.565 & 0.526 \\
- & rotation pool & 15944 (0.130) & 0.386 & 0.373 & 0.441 & $\mathbf{+0.055}$ & $+0.029$ & 0.518 & 0.515 & 0.409 & 0.420 \\
+rotation (PR-AUC) & all stars & 15944 (0.130) & 0.386 & 0.373 & 0.441 & $\mathbf{+0.055}$ & $+0.029$ & 0.518 & 0.515 & 0.409 & 0.420 \\
  & \quad no flare stars & 15670 (0.119) & 0.356 & 0.352 & 0.413 & $\mathbf{+0.057}$ & $+0.029$ & -- & -- & -- & -- \\
  & \quad strict & 14182 (0.129) & 0.367 & 0.372 & 0.427 & $\mathbf{+0.061}$ & $+0.036$ & -- & -- & -- & -- \\
 \midrule
-rotation period ($R^2$) & first pool & 150 & 0.703 & 0.677 & 0.717 & $\mathbf{+0.013}$ & $-0.057$ & 0.695 & 0.730 & 0.597 & 0.698 \\
- & rotation pool & 1318 & 0.718 & 0.636 & 0.752 & $\mathbf{+0.034}$ & $-0.003$ & 0.829 & 0.825 & 0.697 & 0.773 \\
+rotation period ($R^2$) & all stars & 1318 & 0.718 & 0.636 & 0.752 & $\mathbf{+0.034}$ & $-0.003$ & 0.829 & 0.825 & 0.697 & 0.773 \\
  & \quad no flare stars & 1174 & 0.713 & 0.628 & 0.744 & $\mathbf{+0.031}$ & $-0.006$ & -- & -- & -- & -- \\
  & \quad strict & 1145 & 0.718 & 0.636 & 0.748 & $\mathbf{+0.031}$ & $-0.004$ & -- & -- & -- & -- \\
 \bottomrule

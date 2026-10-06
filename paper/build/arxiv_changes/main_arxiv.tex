@@ -51,7 +51,7 @@ they add to the engineered features. We pre-train a convolutional encoder on unl
 window's latent representation from those of its neighbours. We then freeze it, add its features to
 the 25 engineered features, and read the combination out with one fixed linear probe on ten tasks:
 five variability classes, four asteroseismic targets and rotation period. Adding the learned features
-improves the readout on 7 of 10 tasks over the engineered features alone, while an untrained encoder
+improves the readout on 7 of 10 tasks over the engineered features alone, where an untrained encoder
 does not. The combination also outperforms two networks trained end-to-end on the same labelled
 stars on most tasks. An encoder trained without labels therefore gives astronomers new features
 that complement the ones they already use rather than replace them.
@@ -90,24 +90,26 @@ outperforms two networks trained end-to-end on the same labels. Our contribution
 \begin{itemize}
 \item \textbf{The learned features add to the engineered features rather than replacing them.}
 Adding the learned features to the engineered ones improves a fixed linear readout beyond
-$2\,\mathrm{SE}$ on 7 of 10 tasks; an untrained encoder gives no such gain, so the gain comes from pre-training,
-not from merely adding 128 columns.
+$2\,\mathrm{SE}$ on 7 of 10 tasks, on each of which an untrained encoder gives no such gain, so the gain comes
+from pre-training, not from merely adding 128 columns.
 \item \textbf{The combined pipeline, read out by a fixed linear model, outperforms the two
 supervised networks we train end-to-end on the same labels on most tasks.} Against a supervised Conv1D with the
-encoder's architecture it is ahead on 6
-of 10 tasks and indistinguishable on the other 4; against an MLP on raw flux it is ahead on 9 of 10.
+encoder's architecture it is ahead on 7
+of 10 tasks and indistinguishable on the other 3; against an MLP on raw flux it is ahead on 8 of 10.
 \end{itemize}
 
 \section{Data and method}
 
 \paragraph{Data.} We use 2-minute SPOC PDCSAP light curves of stars brighter than TESS magnitude
-$T = 10$ from Sectors 27--101. Pre-training and five of the ten probes (pulsating, eclipsing binary,
-rotation, transit and rotation period) use a label-enriched subset of 13{,}470 stars, split 70/15/15
+$T = 10$ from Sectors 27--101. Pre-training and three of the ten probes (pulsating, eclipsing
+binary and transit) use a label-enriched subset of 13{,}470 stars, split 70/15/15
 by star: every star labelled as a transit host, eclipsing binary or pulsator that has a usable
 window, plus a random sample of 10{,}000 quiet stars, listed in none of our variability catalogues. The pre-training
-loss never sees a label, but this pool is label-enriched, not a random draw from the survey. The other five probes draw their labels from catalogues that barely overlap this subset and are scored on a second pool of 22{,}860 stars built the same way (every catalogue positive
-with a usable window plus 10{,}000 quiet stars, split 70/15/15). No test star of the first pool
-enters pre-training. The first pool admits positives only through the transit, eclipsing-binary and pulsating catalogues and screens its quiet stars against the rotation catalogue as well, so every rotator in it carries a second label and it holds no rotation-only star; Appendix~\ref{app:rotpool} rescores the two rotation tasks on a third pool of 106{,}284 stars, the corpus outside the first pool, where rotators are a natural 13\%. About 8\% of the second pool's test stars (265 of 3{,}429) were in the pre-training subset; removing them leaves all seven gains in place
+loss never sees a label, but this pool is label-enriched, not a random draw from the survey. Five probes draw their labels from catalogues that barely overlap this subset and are scored on a second pool of 22{,}860 stars built the same way (every catalogue positive
+with a usable window plus 10{,}000 quiet stars, split 70/15/15). The two rotation probes are scored
+on the 106{,}284 corpus stars outside the first pool, split 70/15/15, where rotators are a natural
+13\% (Appendix~\ref{app:rotpool}). No test star of the first pool and no star of the rotation pool
+enters pre-training. About 8\% of the second pool's test stars (265 of 3{,}429) were in the pre-training subset; removing them leaves every gain in place
 (Appendix~\ref{app:unseen}). Each light curve is split into contiguous segments wherever the time axis
 breaks, at a missing cadence or a jump longer than five median cadences; segments are
 median-normalised by their median absolute deviation and sliced into non-overlapping windows of 256
@@ -176,7 +178,8 @@ averaged; Appendix~\ref{app:bootstrap}) checks that no verdict hinges on the par
 inputs (Appendix~\ref{app:readout}). Bold: best point estimate of the three arms under each frozen
 readout, with no significance test attached; bold in the appendix tables instead marks a difference
 resolved beyond its error bar, so the two conventions are not interchangeable. $n$: test stars;
-prev.: positive-class prevalence.}
+prev.: positive-class prevalence. The two rotation rows are scored on the rotation pool at the
+survey's own rotator fraction; the other detection rows are case-control.}
 \label{tab:scorecard}
 \centering
 \scriptsize
@@ -196,45 +199,50 @@ supervised baselines. Bars are $2\,\mathrm{SE}$.}
 \paragraph{The learned features add to the engineered features.} Table~\ref{tab:scorecard} and
 Figure~\ref{fig:deltas}a give the comparison. Adding $\mu$ to the 25 features improves the
 fixed readout beyond $2\,\mathrm{SE}$ on 7 of 10 tasks, led by solar-like oscillators $+0.071$,
-pulsating $+0.057$ and flare activity $+0.051$, and reaching $+0.013$ ($R^{2}$) on rotation period.
-Rotation is positive but just short of the
-bar ($+0.016$ against $0.016$). On the rotation pool of Appendix~\ref{app:rotpool}, where the two classes differ in rotation and nothing else, the rotation gain is $+0.055 \pm 0.006$ but an untrained encoder also gains $+0.029$, so about half of it is what any 128 extra columns buy on 74{,}000 training stars; the rotation-period gain there is $+0.034 \pm 0.002$ with the untrained control at zero. Neither verdict moves the count. The two negative tasks are the ones where 128 extra columns cost more
+pulsating $+0.057$ and flare activity $+0.051$, and reaching $+0.034$ ($R^{2}$) on rotation period.
+Rotation clears the bar too ($+0.055 \pm 0.006$) but does not count: an untrained encoder also gains
+$+0.029$ there ($+0.027 \pm 0.003$ over six random initialisations), so about half of the gain is
+what any 128 extra columns buy on 74{,}398 training stars. A gain counts only if the untrained
+control's gain on the same task stays within $2\,\mathrm{SE}$ of zero, a rule fixed before the
+rotation tasks were scored (Appendix~\ref{app:rotpool}). The two negative tasks are the ones where 128 extra columns cost more
 than they add: the 25 features already cover the task (oscillating giants, $-0.003$ on a baseline
 of $0.920$) or the training set is too small to fit 128 more weights (RGB versus helium-burning, $-0.050$ on
 755 training stars). On both, an untrained encoder loses by about the same amount as the trained
 fusion, within the error band; that is what redundant columns do to a linear fit, not a sign that
 $\mu$ carries misleading content (Appendix~\ref{app:negatives}). Across all ten tasks the untrained control is
-negative on seven and never exceeds $+0.016$ (Table~\ref{tab:readout}), so the gains are not what any 128 extra columns would
+negative on six and exceeds $+0.016$ only on rotation (Table~\ref{tab:readout}); its spread over
+initialisations was measured on the two rotation tasks only, and elsewhere it is a single encoder. The
+gains that count are therefore not what any 128 extra columns would
 buy on this feature set; they are specific to what pre-training learned. $\mu$ on its own does not
-replace the features (ahead on only 4 of 10 tasks alone), as \citet{li2025staremb} also find for
+replace the features (ahead on only 3 of 10 tasks alone), as \citet{li2025staremb} also find for
 time-series foundation models; we therefore report fusion rather than substitution \citep{makinen2024}.
 
 \paragraph{The fusion probe outperforms the two supervised networks on most tasks.} Against C1, which shares
 the convolutional trunk, labels and input windows but is trained end-to-end, the fusion
-probe is ahead on 6 of 10 tasks and indistinguishable from it on the other 4
+probe is ahead on 7 of 10 tasks and indistinguishable from it on the other 3
 (Figure~\ref{fig:deltas}b). Against
-C2, an MLP on raw flux, it is ahead on 9 of 10 and behind on one (RGB versus helium-burning, 161
-stars). C1 is not weak: it is ahead of the engineered arm on 5 of 10.
-A paired star-bootstrap (Appendix~\ref{app:bootstrap}) excludes zero on 5 of the 7 fusion gains, 5
-of the 6 leads over C1 and 7 of the 9 over C2.
-This holds for this architecture on 669 to 16{,}002 labelled stars per task, not for
+C2, an MLP on raw flux, it is ahead on 8 of 10 and behind on two (RGB versus helium-burning, 161
+test stars, and rotation period, $0.752$ against $0.773$). C1 is not weak: it is ahead of the engineered arm on 5 of 10.
+A paired star-bootstrap (Appendix~\ref{app:bootstrap}) excludes zero on 6 of the 7 fusion gains that
+count, 6 of the 7 leads over C1 and all 8 over C2.
+This holds for this architecture on 755 to 74{,}398 labelled stars per task, not for
 supervision in general.
 
 \paragraph{The GRU prediction term raises the gain on every task.} Removing the
 GRU prediction term, all else fixed and the same six
 seeds, reduces the fusion gain on all 10 tasks, and by more than $2\,\mathrm{SE}$ on 6 when the two
 arms are differenced seed by seed (Table~\ref{tab:readout}). Without it the gain falls by more
-than half on 5 of the 8 tasks where fusion gains.
+than half on 4 of the 8 tasks where fusion gains.
 
 \section{Discussion}
 
 \paragraph{Pick the encoder by a held-out probe, not by its loss.} Across the ten pre-training recipes of
 one sweep, a lower validation reconstruction loss went with a \emph{lower} probe score: the Spearman
-$\rho$ between negated loss and PR-AUC runs from $-0.58$ to $-0.84$ over four tasks
+$\rho$ between negated loss and PR-AUC runs from $-0.58$ to $-0.84$ over three tasks
 (Figure~\ref{fig:valloss_a}). The recipe with the
-lowest loss is the one without the prediction term on all four, and choosing it would cost
-$0.021$--$0.049$ PR-AUC. On the family our encoder belongs to the anti-correlation does not survive as
-such --- it holds on two of the four tasks and reverses on two --- but the loss optimum is still never
+lowest loss is the one without the prediction term on all three, and choosing it would cost
+$0.021$--$0.035$ PR-AUC. On the family our encoder belongs to the anti-correlation does not survive as
+such --- it holds on two of the three tasks and reverses on one --- but the loss optimum is still never
 the probe optimum (Appendix~\ref{app:valloss}). The same objective carries a second cost: it develops
 a localised artifact inside each window, and none of the interventions we tried on four axes cleared
 both pre-registered acceptance criteria, so the recipe we ship does so by the stated fallback rule
@@ -245,11 +253,12 @@ chosen by a held-out probe, not by its own loss.
 \centering
 \includegraphics[width=0.85\linewidth]{figures/figB_valloss_a.pdf}
 \caption{Validation reconstruction loss against downstream probe score, one point per pre-training
-recipe and one panel per task. The ten recipes share corpus, architecture and loss terms and differ
+recipe and one panel per task; the rotation tasks are absent because these recipes were never
+encoded on the pool rotation is scored on. The ten recipes share corpus, architecture and loss terms and differ
 only in the GRU prediction term (off, forward, forward+backward, multi-step, the last three at three
 weights), four seeds each. $x$: best post-warm-up validation reconstruction loss, averaged over the
 recipe's seeds; $y$: PR-AUC of the fixed linear probe on $\mu$; $\rho$: Spearman's rank correlation
-between negated loss and score. The loss-optimal recipe is the dynamics-free one (red) on all four
+between negated loss and score. The loss-optimal recipe is the dynamics-free one (red) on all three
 tasks, and it is the worst or next-to-worst probe on each. Appendix~\ref{app:valloss} repeats the
 measurement on the family this paper's encoder belongs to.}
 \label{fig:valloss_a}
@@ -259,9 +268,9 @@ measurement on the family this paper's encoder belongs to.}
 $\mu$, \texttt{features}\,$\oplus\,\mu$, and the untrained control) share one linear model. It has few
 parameters, so it cannot rescue weak features, and it is identical across the four, so the comparison
 is between feature sets. Our claim is confined to these 25 features and a linear readout: under
-XGBoost on the same inputs the gain exceeds $2\,\mathrm{SE}$ on 4 of 10 tasks and is negative on one;
+XGBoost on the same inputs the gain exceeds $2\,\mathrm{SE}$ on 3 of 10 tasks and is negative on two;
 where the nonlinear readout raises the features-only score, the $\mu$ gain falls, with a rank
-correlation of $0.92$ across the ten tasks (Appendix~\ref{app:readout}). \emph{Data.} Every arm,
+correlation of $0.87$ across the ten tasks (Appendix~\ref{app:readout}). \emph{Data.} Every arm,
 the supervised baselines included, sees one 5.7-day segment of a bright 2-minute star. The fainter,
 far more numerous stars in the full-frame images, and light curves spanning several sectors, are the
 obvious next experiments. \emph{Labels.} Our
@@ -358,10 +367,8 @@ stars that appear in none of our five v1 catalogues -- transit, eclipsing binary
 and flare. The whole pool is split 70/15/15 by star within each stratum, and the encoder is
 pre-trained and monitored on this pool's training and validation splits.
 
-Note what the two clauses do differently. A star becomes a positive member only through the three
-detection catalogues; rotation and flare appear only as exclusions on the quiet draw. A rotator that
-is not also a transit host, eclipsing binary or pulsator is therefore neither admitted as a positive
-nor drawn as a quiet star, and is absent from this pool altogether. Appendix~\ref{app:rotpool} measures what this costs the two rotation rows.
+Rotation and flare appear here only as exclusions on the quiet draw, so the rotation tasks are scored
+on a pool of their own (Appendix~\ref{app:rotpool}).
 
 \paragraph{The second pool (22{,}860 stars).} The four external catalogues behind the asteroseismic
 and rotation-period tasks are joined to the corpus into one table of 11{,}007 stars, each row a star
@@ -453,9 +460,8 @@ last row counts tasks won, tied and lost at that bar.}
 \end{table}
 
 The retained column is the per-task form of the body's ablation count. On the eight tasks where
-fusion gains, removing the GRU prediction term leaves between $-0.69$ and $0.89$ of that gain, below
-half on five of them, and on two (rotation and rotation period) the remainder is negative, so the
-ablated encoder's columns are worse than not adding them at all. We give the eight fractions rather
+fusion gains, removing the GRU prediction term leaves between $0.29$ and $0.89$ of that gain, below
+half on four of them; on none does the gain change sign. We give the eight fractions rather
 than one summary number because the ten gains are measured in PR-AUC, ROC-AUC and $R^{2}$ and cannot
 be added together.
 
@@ -467,17 +473,17 @@ the seed, through the validation split, so the gain is differenced seed by seed.
 
 Under XGBoost the $\mu$ gain (features\,$\oplus\,\mu$ minus features alone) is smaller than under the
 linear readout on most tasks. XGBoost also scores higher than the linear readout on the 25 features
-alone on eight of ten tasks, and the two changes go together. On solar-like oscillators the features-only score rises from
+alone on nine of ten tasks, and the two changes go together. On solar-like oscillators the features-only score rises from
 0.320 to 0.470 and the $\mu$ gain falls from $+0.071$ to $-0.007$. On RGB versus helium-burning,
 where XGBoost does not raise the features-only score, the $\mu$ gain is larger under XGBoost. Across
 the ten tasks, the rise in the features-only score and the fall in the $\mu$ gain have a Spearman rank
-correlation of 0.92. This is consistent with part of the information $\mu$ supplies to a linear
+correlation of 0.87. This is consistent with part of the information $\mu$ supplies to a linear
 readout being already present in the 25 features, in a form only a nonlinear readout can use.
 
 Table~\ref{tab:readout} also gives the same comparison with an untrained encoder in place of the
 trained one. Under XGBoost its 128 columns lower the score on nine of ten tasks and the trained $\mu$
 scores above it on eight, so the gains that survive come from pre-training, not from adding columns.
-XGBoost on the 25 features alone also scores above the linear fusion probe on 7 of 10 tasks
+XGBoost on the 25 features alone also scores above the linear fusion probe on 8 of 10 tasks
 (Table~\ref{tab:scorecard}). The body's claim is about what $\mu$ adds under a fixed linear readout,
 not that the linear fusion probe is the strongest classifier available on these features.
 
@@ -487,10 +493,11 @@ not that the linear fusion probe is the strongest classifier available on these 
 Figure~\ref{fig:valloss_a} in \S4 is half of this measurement; Figure~\ref{fig:valloss_b} is the
 other half, and the two differ in which family of recipes is varied.
 
-In Figure~\ref{fig:valloss_a} the loss-optimal recipe is the dynamics-free one on all four tasks, and
-it is the worst or next-to-worst probe on each, so selecting on the loss costs $0.021$--$0.049$
+In Figure~\ref{fig:valloss_a} the loss-optimal recipe is the dynamics-free one on all three tasks, and
+it is the worst or next-to-worst probe on each, so selecting on the loss costs $0.021$--$0.035$
 PR-AUC against the probe-optimal recipe. The trend is not carried by that one point: with it removed,
-$\rho$ still runs from $-0.43$ to $-0.87$. Those recipes are an earlier sweep than our encoder --
+$\rho$ still runs from $-0.47$ to $-0.87$. Both figures leave out the rotation tasks, which are
+scored on a pool these recipes were never encoded on. Those recipes are an earlier sweep than our encoder --
 they carry an earlier spectral auxiliary term -- so Figure~\ref{fig:valloss_b} repeats the estimator
 on the family we ship: 19 recipes built on the final encoder that vary the form, weight and floor of
 the auxiliary term, six seeds each (two more recipes in which one seed collapsed are excluded; we
@@ -508,11 +515,11 @@ linear probe on $\mu$; $\rho$: Spearman's rank correlation between negated loss 
 \end{figure}
 
 There the anti-correlation does not persist as such: $\rho$ is $-0.51$ on pulsating and $-0.50$ on
-transit, $+0.37$ on eclipsing binaries and $+0.11$ on rotation. What persists is that the loss is not
+transit but $+0.37$ on eclipsing binaries. What persists is that the loss is not
 a selector: its optimum is again the recipe with the weakest competing term (the diamond, no
-auxiliary term at all), which is never the probe optimum, and trusting it costs $0.011$--$0.034$
+auxiliary term at all), which is never the probe optimum, and trusting it costs $0.011$--$0.031$
 PR-AUC. So the body's figure shows an anti-correlation on every task; this one shows it surviving on
-two tasks and reversing on two; in neither does the loss choose. Both are statements across recipes
+two tasks and reversing on one; in neither does the loss choose. Both are statements across recipes
 only: within one recipe, across its seeds, no label-free curve metric we tried (reconstruction,
 reconstruction plus auxiliary, active latent units) ranks the seeds, every such correlation sitting
 within $\pm 0.3$ of zero.
@@ -602,9 +609,11 @@ saved per-star predictions (no model is retrained), average each arm over its se
 difference. Table~\ref{tab:bootstrap} gives the 95\% percentile interval of that difference and the
 share of resamples in which the fusion arm is ahead; intervals that exclude zero are bold. The check
 tightens no verdict and reverses none: every row the body calls ahead has the fusion arm ahead in at
-least 65\% of resamples. It does loosen the smallest tasks -- rotation period (150 test stars) and
-RGB versus helium-burning (161) account for four of the ten rows where a resolved $2\,\mathrm{SE}$
-verdict becomes an interval that touches zero.
+least 85\% of resamples. It does loosen five of the 40 verdicts, each a resolved $2\,\mathrm{SE}$
+verdict whose interval touches zero: the gain on transit and the loss on oscillating giants over the
+features, the lead over C1 on
+pulsating, the loss to C2 on RGB versus helium-burning (161 test stars), and the dynamics contrast on
+flare activity.
 
 \begin{table}[H]
 \caption{Paired star-bootstrap of the four contrasts the body counts. Each entry is the 95\% interval
@@ -695,10 +704,11 @@ published accuracy came from an ensemble we do not run.
 
 The encoder is fitted on the training stars of the first pool and monitored on its validation stars,
 so the test stars of
-the five tasks scored on that pool are unseen by construction. The second pool shares some stars with
+the three tasks scored on that pool are unseen by construction, and the rotation pool excludes every
+pre-training star. The second pool shares some stars with
 it. Table~\ref{tab:unseen} removes every test star that was in the pre-training training or validation
 split and rescores the saved per-star predictions; no model is refitted. The gain exceeds
-$2\,\mathrm{SE}$ on the same 7 of 10 tasks; the largest change is flare activity, $+0.051$ to
+$2\,\mathrm{SE}$ on the same tasks as before; the largest change is flare activity, $+0.051$ to
 $+0.041$, and the small loss on oscillating giants ($-0.003$) becomes a tie ($-0.001$).
 
 \begin{table}[H]
@@ -710,32 +720,22 @@ on the test stars never seen in pre-training. Bold: beyond $2\,\mathrm{SE}$ over
 \input{tables/table_unseen}
 \end{table}
 
-\section{The two rotation tasks on a pool that contains rotation-only stars}
+\section{The rotation pool}
 \label{app:rotpool}
 
-\paragraph{The defect.} As Appendix~\ref{app:pools} states, the first pool admits a star as a positive
-only through the transit, eclipsing-binary and pulsating catalogues, and its quiet draw excludes every
-star the rotation catalogue lists. All 1{,}138 rotators in that pool are therefore also transit hosts,
-eclipsing binaries or pulsators (607, 383 and 148 by split stratum), and none of its 10{,}000 quiet
-stars rotates. A readout can separate the two classes of the \emph{rotation} task by detecting the
-co-occurring class, and the \emph{rotation period} task is fitted on the same co-labelled rotators
-(669 training, 150 test). The ML4PS version of this paper scored both tasks on that pool; the body
-above still prints those numbers, and this appendix reports the same two tasks on a pool built to
-remove the defect. The design, the population, the arms, the readouts and the rule for reading the
-result were fixed in writing before any score on the new pool was computed.
-
-\paragraph{The rotation pool.} Every corpus star with at least one usable window that is not in the
+\paragraph{Construction.} Every corpus star with at least one usable window that is not in the
 first pool: 106{,}284 stars, of which 13{,}789 carry a rotation period in the TESS All-Sky Rotation
 Survey \citep{boyle2026} and 92{,}495 do not. By construction the pool contains no transit host,
 eclipsing binary or pulsator (the first pool took every one), no star that entered pre-training, and
 no sampling step: rotators are 13.0\% of it, against 12.5\% of the corpus, so both rotation tasks are
 scored at the survey's own prevalence rather than the case-control prevalence of the other pools. It
 is split 70/15/15 by star, stratified on rotators with period at most five days (8{,}786), other
-rotators (5{,}003) and non-rotators, seed 0. Rotation period keeps the five-day cap of the body. A
-non-rotator here is a star the survey does not list, not a star examined and found not to rotate;
-this is the same label limitation that bounds the body's rotation row. No encoder is run again: the
-per-star encoder outputs and the 25 engineered features for these stars had been cached for the
-survey-prevalence check of \S4, and the readouts are the body's, refitted on the new training split.
+rotators (5{,}003) and non-rotators, seed 0. The rotation-period task keeps the rotators with period
+at most five days. A non-rotator here is a star the survey does not list, not a star examined and
+found not to rotate. No encoder is run again: the per-star encoder outputs and the 25 engineered
+features for these stars had been cached for an earlier survey-prevalence rescore, and the readouts
+are the body's, fitted on this pool's training split. The design, the arms, the readouts and the rule
+for reading the result were fixed in writing before any score on this pool was computed.
 
 Two properties still differ between the classes besides rotation, both astrophysical rather than
 sampling artefacts: 10.4\% of the rotators and 0.5\% of the non-rotators carry a flare label, and
@@ -744,38 +744,28 @@ oscillators. The headline rows keep every star, because a survey contains them; 
 refit the readout with flare stars removed from both classes, and with the positives restricted to
 stars in no non-rotation catalogue and the negatives to stars in no catalogue at all.
 
-\paragraph{Result.} Table~\ref{tab:rotpool} gives both tasks on the first pool and on the rotation
-pool, every column of Table~\ref{tab:scorecard} included. Three things change and one does not.
-The engineered-feature score on the rotation task falls from 0.540 to 0.386: the first pool's
-negatives are stars in no catalogue, the rotation pool's negatives are every non-rotator in the
-survey, and the second is the harder set. The fusion gain on rotation rises from $+0.016 \pm 0.016$
-to $+0.055 \pm 0.006$, but an untrained encoder now also gains $+0.029$ (init spread $+0.027 \pm
-0.003$ over six inits) where on the first pool it lost $0.026$; with 74{,}398 training stars, 128
-random columns are no longer redundant to a linear fit. The trained encoder is ahead of the untrained
-one by $+0.029 \pm 0.008$, paired by seed. Because the pre-registered rule for these two rows requires
-the untrained control to stay within $2\,\mathrm{SE}$ of zero, rotation does not count, as it did
-not before. Rotation period does count on both pools, and more clearly on the new one: $+0.034 \pm
-0.002$ on 1{,}318 test stars against $+0.013 \pm 0.010$ on 150, with the untrained control at
-$-0.003$. The body's count of 7 of 10 is therefore unchanged. The two sensitivity rows agree with the
-headline on both verdicts. The dynamics-off contrast keeps its sign on both tasks ($+0.019 \pm 0.007$
-and $+0.020 \pm 0.003$), and a paired star-bootstrap of every contrast in the table
-(1{,}000 resamples, as in Appendix~\ref{app:bootstrap}) agrees with every seed-band verdict.
+\paragraph{The counting rule.} A gain on these two tasks counts only if (i) it exceeds
+$2\,\mathrm{SE}$, (ii) the untrained control's own gain stays within $2\,\mathrm{SE}$ of zero, and
+(iii) the trained-minus-untrained difference, paired seed $s$ with initialisation $s$, exceeds
+$2\,\mathrm{SE}$. Clause (ii) needs the untrained encoder's spread, so six random initialisations
+were scored here; Table~\ref{tab:scorecard} prints the first of them, the same initialisation as
+every other task's untrained arm.
 
-Two of the body's other tallies would change if the rotation pool replaced the first pool in
-Table~\ref{tab:scorecard}, and are stated here so the reader can recount. Under XGBoost the fusion
-gain on rotation period turns from $+0.036$ to $-0.004 \pm 0.003$ (the features alone reach 0.829),
-so Appendix~\ref{app:readout}'s tally of 4 wins, 5 ties and 1 loss becomes 3, 5 and 2. Against the
-raw-flux MLP the fusion probe is behind on rotation period (0.752 against 0.773, $-0.021 \pm 0.004$),
-so ``ahead on 9 of 10'' becomes 8 of 10; it stays ahead of the convolutional baseline on both tasks.
-Under the linear readout the untrained control's largest gain across the ten tasks becomes the
-$+0.029$ above rather than the $+0.016$ the body quotes; that sentence's conclusion, that the gains
-which count are not what 128 arbitrary columns buy, is what the rule of this appendix enforces
-explicitly.
+\paragraph{Result.} Table~\ref{tab:rotpool} gives both tasks with the two sensitivity rows. On
+rotation the fusion gain is $+0.055 \pm 0.006$ and the trained encoder is ahead of the untrained one
+by $+0.029 \pm 0.008$, but the untrained encoder itself gains $+0.027 \pm 0.003$ over its six
+initialisations: with 74{,}398 training stars, 128 random columns are no longer redundant to a linear
+fit. Clause (ii) fails, so rotation does not count. On rotation period the gain is $+0.034 \pm 0.002$
+on 1{,}318 test stars, the untrained control is at $-0.003$ and the paired difference is
+$+0.037 \pm 0.003$, so it counts. The two sensitivity rows agree with the headline on both verdicts.
+The dynamics-off contrast is positive on both tasks ($+0.019 \pm 0.007$ and $+0.020 \pm 0.003$), and
+a paired star-bootstrap of every contrast in the table (1{,}000 resamples, as in
+Appendix~\ref{app:bootstrap}) agrees with every seed-band verdict.
 
 \begin{table}[H]
-\caption{The two rotation tasks on the first pool (the body's numbers) and on the rotation pool.
-Linear and XGBoost readouts and the two supervised baselines are those of Table~\ref{tab:scorecard};
-gain = features\,$\oplus\,\mu$ minus features, mean over six encoder seeds, bold beyond
+\caption{The two rotation tasks on the rotation pool. The ``all stars'' rows are those of
+Table~\ref{tab:scorecard}; linear and XGBoost readouts and the two supervised baselines are as there.
+Gain = features\,$\oplus\,\mu$ minus features, mean over six encoder seeds, bold beyond
 $2\,\mathrm{SE}$; untrained gain = the same with the untrained encoder. Sensitivity rows refit the
 linear readout on the restricted population. $n$: test stars; prev.: rotator prevalence.}
 \label{tab:rotpool}
