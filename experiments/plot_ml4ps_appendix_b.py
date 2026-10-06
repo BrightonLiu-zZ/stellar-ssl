@@ -39,7 +39,9 @@ CELLS = ["exp05_comb_off",
          "exp05_comb_fwd_c0p1", "exp05_comb_fwd_c0p3", "exp05_comb_fwd_c1p0",
          "exp05_comb_fbwd_c0p1", "exp05_comb_fbwd_c0p3", "exp05_comb_fbwd_c1p0",
          "exp05_comb_multi_c0p1", "exp05_comb_multi_c0p3", "exp05_comb_multi_c1p0"]
-TASKS = ["pulsating", "eb", "rotation", "transit"]
+# Rotation is left out: these probe scores are on the first pool, whose rotators all carry a second
+# label, and the paper scores rotation on the rotation pool, where these recipes were never encoded.
+TASKS = ["pulsating", "eb", "transit"]
 TASK_LABEL = {"pulsating": "pulsating", "eb": "eclipsing binary", "rotation": "rotation", "transit": "transit"}
 MODE_LABEL = {"off": "dynamics off", "fwd": "forward", "fbwd": "forward+backward", "multi": "multi-step"}
 MARKER = {"off": "X", "fwd": "o", "fbwd": "s", "multi": "^"}
@@ -208,7 +210,7 @@ def main() -> int:
                             label="dynamics off")]
     xlabel = "best validation reconstruction loss (mean over seeds)"
 
-    fig, axes = plt.subplots(2, 4, figsize=(5.5, 2.75))
+    fig, axes = plt.subplots(2, len(TASKS), figsize=(5.5, 2.75))
     draw_row_a(axes[0])
     draw_row_b(axes[1])
     tidy(axes)
@@ -231,7 +233,7 @@ def main() -> int:
 
     for suffix, draw, handles, ylabel in [("a", draw_row_a, handles_a, "PR-AUC on $\\mu$"),
                                           ("b", draw_row_b, handles_b, "PR-AUC on $\\mu$")]:
-        fig, axes = plt.subplots(1, 4, figsize=(5.5, 1.55))
+        fig, axes = plt.subplots(1, len(TASKS), figsize=(5.5, 1.55))
         draw(axes)
         tidy(axes)
         axes[0].set_ylabel(ylabel)
