@@ -37,6 +37,14 @@ cp main.tex $W/main_arxiv.tex
 # two lists then diff to nothing, which is correct: refs.bib has not changed.
 cp refs.bib neurips_2026.sty $W/old/
 cp -r figures $W/old/figures
+# The ML4PS figures as submitted, not as the live generators now draw them: Figure 1 and the val-loss
+# figure were regenerated after the submission under the same file names. Pointing the old document at
+# its own copies under a distinct path is what makes latexdiff treat them as replaced, so the changes
+# PDF shows each old figure crossed out beside the new one instead of silently printing the new one.
+for fig in fig1_deltas_xgb figB_valloss; do
+  git show $SUBMITTED:paper/figures/$fig.pdf > $W/old/figures/ml4ps_$fig.pdf
+  sed -i "s#{figures/$fig.pdf}#{$W/old/figures/ml4ps_$fig.pdf}#" $W/old/main.tex
+done
 (cd $W/old && pdflatex -interaction=batchmode main.tex >/dev/null 2>&1; bibtex main >/dev/null 2>&1)
 
 latexdiff-so --flatten --graphics-markup=both \
