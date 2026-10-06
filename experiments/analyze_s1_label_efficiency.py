@@ -85,6 +85,14 @@ Run (repo root, swm env, PYTHONPATH=src; CPU-only, ~25 min at --jobs 10):
     PYTHONUNBUFFERED=1 python experiments/analyze_s1_label_efficiency.py
     python experiments/analyze_s1_label_efficiency.py --tasks eb --draws 3 --seeds 0
     python experiments/analyze_s1_label_efficiency.py --summary-only
+    python experiments/analyze_s1_label_efficiency.py --rotation-pool    # the two rotation tasks on pool 3
+
+ROTATION POOL (added 2026-10-05). The paper now scores `rotation` and `rotation_period` on pool 3
+(experiments/rotation_pool: the 106,284 corpus stars outside the subset, natural prevalence), so their
+label-efficiency curves are re-measured there with `--rotation-pool`: same ladder, floor, draws and
+readouts, mu and features read from the R8 caches, the untrained control = `untrained_i0` (the paper's
+single untrained arm). Its footing gates check against experiments/rotation_pool/ rather than F1, and it
+writes to experiments/rotation_pool/s1 so the subset curves above stay untouched.
 """
 from __future__ import annotations
 
@@ -121,6 +129,7 @@ from analyze_f1_fusion_scorecard import concat, pool  # noqa: E402
 from swm.eval.new_task_ceiling import cached_pool_features, cached_subset_features  # noqa: E402
 from swm.eval.new_task_scorecard import label_frame, score_regression  # noqa: E402
 from swm.eval.readout_sweep import fit_readout_scores  # noqa: E402
+from swm.eval.rotation_pool import PERIOD_CAP_DAYS, load_canonical  # noqa: E402
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s",
                     datefmt="%Y-%m-%d %H:%M:%S", handlers=[logging.StreamHandler(sys.stdout)], force=True)
@@ -154,6 +163,8 @@ UNPRINTABLE = {"flare"}
 # labels, RidgeCV for targets, exactly what F1 fitted. `cvC` is the APPENDIX CONTROL added
 # 2026-09-01 after the fixedC curves came back -- see the CONTROL block in the module docstring.
 READOUTS = ("fixedC", "cvC")
+ROTATION_TASKS = ("rotation", "rotation_period")
+rotation_pool_home = repo_root / "experiments" / "rotation_pool"
 
 
 # ------------------------------------------------------------------------------------- task registry
@@ -170,7 +181,7 @@ def rotation_period_targets() -> pd.Series:
     canon["rotation"] = pd.to_numeric(canon["rotation"], errors="coerce").fillna(0).astype(int)
     canon["rotation_period"] = pd.to_numeric(canon["rotation_period"], errors="coerce")
     keep = canon.loc[(canon["rotation"] == 1) & canon["rotation_period"].notna()
-                     & (canon["rotation_period"] <= 5), ["tic_id", "rotation_period"]]
+                     & (canon["rotation_period"] <= PERIOD_CAP_DAYS), ["tic_id", "rotation_period"]]
     return keep.set_index("tic_id")["rotation_period"]
 
 
@@ -207,9 +218,14 @@ def task_specs(tics: dict[str, dict[str, list[int]]], tasks: list[str]) -> dict[
             entry[f"{split}_y"] = np.asarray(target, dtype=float)[np.flatnonzero(keep)]
         specs[task] = entry
 
+    # pool 3 lies outside the exp06 feature cache, so its rotation flag comes from the Stage 0d table
+    # directly -- the same table `analyze_rotation_pool.py` scored it from
+    canon = load_canonical(repo_root / "labels" / "variability_labels_star.csv").set_index("tic_id")
     for task in V1_TASKS:
-        def v1_selector(star_ids: list[int], column: str = task):
-            values = pd.to_numeric(v1[column].reindex(star_ids), errors="coerce").fillna(0).astype(int)
+        source = canon if TASK_POPULATION[task] == "rotpool" else v1
+
+        def v1_selector(star_ids: list[int], column: str = task, source: pd.DataFrame = source):
+            values = pd.to_numeric(source[column].reindex(star_ids), errors="coerce").fillna(0).astype(int)
             return np.ones(len(star_ids), dtype=bool), values.to_numpy()
         add(task, "detection", "pr_auc", v1_selector)
 
@@ -501,6 +517,30 @@ def growth_verdict(probe: pd.DataFrame) -> pd.DataFrame:
 
 
 # ------------------------------------------------------------------------------------- footing gates
+def reference_absolute() -> pd.DataFrame:
+    """The published full-budget cells the footing gates compare against, `mean` readout, linear family.
+
+    F1's table for every task, except that under `--rotation-pool` the two rotation tasks come from the
+    rotation pool's own table, with its untrained rows pinned to init 0 (that table averages six inits;
+    S1 scores the paper's single untrained arm). Empty when F1's table is absent.
+    """
+    path = repo_root / "experiments" / "f1_fusion_scorecard" / "f1_absolute.csv"
+    if not path.exists():
+        return pd.DataFrame()
+    ref = pd.read_csv(path)
+    ref = ref[(ref["readout"] == "mean") & (ref["readout_family"] == "linear")]
+    if TASK_POPULATION["rotation"] != "rotpool":
+        return ref
+    pool = pd.read_csv(rotation_pool_home / "absolute.csv")
+    pool = pool[(pool["block"] == "pool3") & (pool["readout"] == "mean") & (pool["readout_family"] == "linear")].copy()
+    probe = pd.read_csv(rotation_pool_home / "probe.csv")
+    probe = probe[(probe["block"] == "pool3") & (probe["arm"] == "untrained_i0") & (probe["readout"] == "mean")]
+    for index, row in pool[pool["family"] == UNTRAINED_ARM].iterrows():
+        hit = probe[(probe["task"] == row["task"]) & (probe["arm_set"] == row["arm_set"])]
+        pool.loc[index, ["score_mean", "n_seeds"]] = [float(hit[row["metric"]].iloc[0]), 1]
+    return pd.concat([ref[~ref["task"].isin(ROTATION_TASKS)], pool], ignore_index=True)
+
+
 def footing_full_budget(summary: pd.DataFrame) -> pd.DataFrame:
     """FOOTING-1: the full-budget row is F1's published cell and must reproduce f1_absolute.csv.
 
@@ -525,12 +565,10 @@ def footing_full_budget(summary: pd.DataFrame) -> pd.DataFrame:
     single-threaded regime, so the term cancels exactly in each fusion delta; it survives only in this
     cross-artifact check against a differently-threaded run.
     """
-    path = repo_root / "experiments" / "f1_fusion_scorecard" / "f1_absolute.csv"
-    if not path.exists():
+    ref = reference_absolute()
+    if ref.empty:
         log.warning("f1_absolute.csv absent; FOOTING-1 skipped and this run is NOT certified")
         return pd.DataFrame()
-    ref = pd.read_csv(path)
-    ref = ref[(ref["readout"] == "mean") & (ref["readout_family"] == "linear")]
     rows = []
     for _, cell in summary[summary["is_full"]].iterrows():
         for arm_set, family, value, n_seeds in (
@@ -577,12 +615,10 @@ def footing_test_population(specs: dict[str, dict]) -> pd.DataFrame:
     scorers apply their masks internally. This is the check that the re-derivation did not quietly move
     the population -- it runs on the TEST split, which S1 never subsamples.
     """
-    path = repo_root / "experiments" / "f1_fusion_scorecard" / "f1_absolute.csv"
-    if not path.exists():
+    ref = reference_absolute()
+    if ref.empty:
         log.warning("f1_absolute.csv absent; FOOTING-2 skipped")
         return pd.DataFrame()
-    ref = pd.read_csv(path)
-    ref = ref[(ref["readout"] == "mean") & (ref["readout_family"] == "linear")]
     rows = []
     for task, spec in specs.items():
         match = ref[ref["task"] == task]
@@ -602,6 +638,32 @@ def footing_test_population(specs: dict[str, dict]) -> pd.DataFrame:
 
 
 # ---------------------------------------------------------------------------------------- arm tables
+def rotation_pool_tables(arms: list[str]) -> tuple[dict, dict]:
+    """The same three arm sets on pool 3, built by `analyze_rotation_pool.py`'s own helpers.
+
+    R8 cached mu already pooled per star (`mean` columns = F1's `mean` readout), and the 25 features
+    for the same stars; the split is pool 3's own 70/15/15. Arm names follow the S1 list, so the paper's
+    single untrained arm is R8's `untrained_i0` (footing check F2 of the rotation pool).
+    """
+    from analyze_rotation_pool import table_from_frame  # noqa: E402 -- pulls in the R8 loaders
+    from analyze_t2_beyond_baseline_rotation import load_arm_mu, load_features25  # noqa: E402
+    from swm.eval.features import FEATURE_NAMES  # noqa: E402
+
+    pool3 = pd.read_parquet(repo_root / "processed" / "subset" / "rotation_pool.parquet")
+    members = {split: pool3.loc[pool3["split"] == split, "tic_id"].to_numpy() for split in ("train", "test")}
+    feats = table_from_frame(load_features25()[list(FEATURE_NAMES)], members)
+    tables = {("features_only", "features", -1): {"train": stacked(feats, "train"), "test": stacked(feats, "test")}}
+    for arm in tqdm(arms, desc="arm tables[rotpool]", total=len(arms)):
+        r8_arm = "untrained_i0" if arm == UNTRAINED_ARM else f"exp07_{arm}"
+        mu = load_arm_mu(r8_arm)
+        pooled = table_from_frame(mu[[c for c in mu.columns if c.startswith("mean")]], members)
+        fused = concat(feats, pooled, ["train", "test"])
+        family, seed = arm_parts(arm)  # the subset path's naming: untrained is seed 0
+        tables[("mu", family, seed)] = {"train": stacked(pooled, "train"), "test": stacked(pooled, "test")}
+        tables[("features_plus_mu", family, seed)] = {"train": stacked(fused, "train"), "test": stacked(fused, "test")}
+    return tables, {split: list(members[split]) for split in members}
+
+
 def build_tables(arms: list[str], populations: list[str]) -> tuple[dict, dict]:
     """Every arm's design matrices per population, built through F1's own pooling and concatenation.
 
@@ -621,7 +683,11 @@ def build_tables(arms: list[str], populations: list[str]) -> tuple[dict, dict]:
 
     tables: dict[str, dict] = {}
     tics: dict[str, dict] = {}
+    if "rotpool" in populations:
+        tables["rotpool"], tics["rotpool"] = rotation_pool_tables(arms)
     for population in populations:
+        if population == "rotpool":
+            continue
         tables[population] = {}
         for arm in tqdm(arms, desc=f"arm tables[{population}]", total=len(arms)):
             mu = load_mu_cache(cache_sub[population] / f"{arm}.npz")
@@ -657,7 +723,17 @@ def main() -> int:
     ap.add_argument("--force", action="store_true", help="rescore tasks whose shard already exists")
     ap.add_argument("--summary-only", action="store_true",
                     help="rebuild the summary/verdict tables from existing shards (seconds, not minutes)")
+    ap.add_argument("--rotation-pool", action="store_true",
+                    help="score the two rotation tasks on pool 3 (the paper's population for them) into "
+                         "experiments/rotation_pool/s1")
     args = ap.parse_args()
+    if args.rotation_pool:
+        TASK_POPULATION.update({task: "rotpool" for task in ROTATION_TASKS})
+        if args.tasks == list(TASK_ORDER):
+            args.tasks = list(ROTATION_TASKS)
+        assert set(args.tasks) <= set(ROTATION_TASKS), "--rotation-pool scores the two rotation tasks only"
+        if args.out_dir == "experiments/s1_label_efficiency":
+            args.out_dir = "experiments/rotation_pool/s1"
 
     out_dir = repo_root / args.out_dir
     shard_dir = out_dir / "shards"
