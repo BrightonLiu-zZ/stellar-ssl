@@ -71,9 +71,11 @@ locally and not published. Two preamble changes made the switch:
 - The three float-spacing overrides (`\abovecaptionskip` / `\textfloatsep` / `\floatsep`) are gone.
   They existed only to buy ~4 lines for the 4-page limit, which arXiv does not impose.
 
-**The page-4 assertion is retired.** `build_and_check.sh` still prints the page-4/5 boundary, but a
-body that runs past page 4 is no longer a defect — read those two lines as information, not as a
-test. The checks that still matter are the overfull-box count and reading the PDF end to end.
+**The 4-page body limit applies again (since 2026-10-06).** The arXiv version has to line up with
+the formal publication, so the body (everything before References) stays within 4 pages; the
+appendices have no limit. In `build_and_check.sh` output, the first line of page 5 must be
+`References`. Check that line, not section headings: body lines can sit on page 5 above References
+while every heading is on page 4. The float overrides stay removed.
 
 Measured after the switch (2026-09-20): 10 pages, 0 overfull boxes, body still ends on page 4 and
 References still opens page 5. Dropping the float overrides did *not* spill the body, because
