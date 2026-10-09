@@ -1,7 +1,7 @@
 \documentclass{article}
 %DIF LATEXDIFF DIFFERENCE FILE
-%DIF DEL build/arxiv_changes/old/main.tex   Tue Oct  6 20:05:06 2026
-%DIF ADD main.tex                           Tue Oct  6 20:04:48 2026
+%DIF DEL build/arxiv_changes/old/main.tex   Thu Oct  8 21:47:12 2026
+%DIF ADD main.tex                           Thu Oct  8 21:46:59 2026
 
 %DIF 3c3
 %DIF < \usepackage{neurips_2026}
@@ -40,25 +40,34 @@
 %DIF -------
 \title{What does self-supervision add to engineered features\\for stellar light curves?}
 
-%DIF 32a21-24
+%DIF 32a21-28
 % Author block (roadmap 2.1). Order matches the OpenReview record (Zijun Liu, Yue Ma, Christopher %DIF > 
 % Theissen); Yue Ma's affiliation is her OpenReview profile's current entry. Co-author e-mail %DIF > 
-% addresses are not printed without their consent. "Hal\i c\i o\u{g}lu" is spelled with the escapes %DIF > 
+% addresses are not printed without their consent (Yue Ma's added 2026-10-07, Theissen's 2026-10-08, each at their request). "Hal\i c\i o\u{g}lu" is spelled with the escapes %DIF > 
 % rather than raw UTF-8 so the file stays ASCII. %DIF > 
+% All three authors are corresponding (roadmap 2.7, agreed 2026-10-06). The \thanks carries the %DIF > 
+% author-contribution statement too, in one first-page footnote; \footnotemark[1] repeats its %DIF > 
+% asterisk on the other two names. The statement follows what each person did, not the template %DIF > 
+% Yue Ma suggested on 2026-09-11 (see tmp/handoff/2026-09-20-authorship-and-contributions-draft.md). %DIF > 
 %DIF -------
 \author{\DIFdelbegin \DIFdel{Anonymous Author(s)}\DIFdelend %DIF > 
-  \DIFaddbegin \DIFadd{Zijun Liu}\DIFaddend \\
+  \DIFaddbegin \DIFadd{Zijun Liu}\thanks{Corresponding authors. Z.L. conceived the project and the encoder, designed and
+  ran all experiments, assembled the data and wrote the manuscript. C.A.T. advised on the
+  astrophysics, including probe tasks, data sources and label quality. Y.M. advised on the machine-learning methodology, including the
+  reconstruction artifact, additional controls and interpretation of the results. C.A.T. and Y.M.
+  commented on the manuscript.}\DIFaddend \\
   \DIFdelbegin \DIFdel{Affiliation}\DIFdelend \DIFaddbegin \DIFadd{University of California, San Diego}\DIFaddend \\
-  \DIFdelbegin \DIFdel{Address}\DIFdelend \DIFaddbegin \DIFadd{\texttt{brl055@ucsd.edu}}\DIFaddend \\
-  \DIFdelbegin \DIFdel{\texttt{email}}\DIFdelend \DIFaddbegin \DIFadd{\texttt{liuzijun6688@gmail.com}
+  \DIFdelbegin \DIFdel{Address}\DIFdelend \DIFaddbegin \DIFadd{\texttt{brl055@ucsd.edu}
   }\And
-  \DIFadd{Yue Ma}\\
-  \DIFadd{Hal\i c\i o\u{g}lu Data Science Institute}\\
-  \DIFadd{University of California, San Diego
+  \DIFadd{Yue Ma}\footnotemark[1]\DIFaddend \\
+  \DIFdelbegin \DIFdel{\texttt{email}}\DIFdelend \DIFaddbegin \DIFadd{Hal\i c\i o\u{g}lu Data Science Institute}\\
+  \DIFadd{University of California, San Diego}\\
+  \DIFadd{\texttt{y5ma@ucsd.edu}
   }\And
-  \DIFadd{Christopher A. Theissen}\\
+  \DIFadd{Christopher A. Theissen}\footnotemark[1]\\
   \DIFadd{Department of Astronomy and Astrophysics}\\
-  \DIFadd{University of California, San Diego
+  \DIFadd{University of California, San Diego}\\
+  \DIFadd{\texttt{ctheissen@ucsd.edu}
 }\DIFaddend }
  %DIF > 
 %DIF PREAMBLE EXTENSION ADDED BY LATEXDIFF
@@ -179,11 +188,12 @@ than they can be labelled. TESS
 thousands of pre-selected stars, and full-frame images of every star in the field at cadences that
 change between mission cycles (30 minutes, then 10, now 200 seconds). LSST \citep{ivezic2019}
 will add \emph{billions} more light curves, albeit at a cadence of days. Self-supervised learning is the
-natural response: pre-train one encoder on the unlabelled archive, then attach a cheap readout for
-each task. Encoders of this shape exist for ground-based, Gaia and Kepler light curves
-\citep{donoso2025astromer2,zuo2025falco,rui2026jepa} and are evaluated by classification accuracy,
+natural response: pre-train one encoder on the unlabelled archive, then attach a cheap readout \DIFdelbegin \DIFdel{for
+each task. Encoders of this shape }\DIFdelend \DIFaddbegin \DIFadd{per
+task. Such encoders }\DIFaddend exist for ground-based, Gaia and Kepler light curves
+\citep{donoso2025astromer2,zuo2025falco,rui2026jepa} and are \DIFdelbegin \DIFdel{evaluated }\DIFdelend \DIFaddbegin \DIFadd{scored }\DIFaddend by classification accuracy,
 sometimes against engineered features \citep{rui2026jepa}; a label-free TESS representation
-\citep{poznanski2026} is evaluated by whether repeat observations of one star lie close in its embedding space.
+\citep{poznanski2026} is evaluated by whether repeat observations of one star \DIFdelbegin \DIFdel{lie close in its embedding space}\DIFdelend \DIFaddbegin \DIFadd{embed close together}\DIFaddend .
 None measures what they add to engineered features.
 
 In this domain, the baseline that a learned encoder must improve on is already strong. Decades of variable-star
@@ -413,9 +423,13 @@ the }\DIFaddend pre-training \DIFdelbegin \DIFdel{recipes of one sweep, a lower 
 \DIFdel{probe score: the Spearman
 $\rho$ between negated loss and PR-AUC runs from $-0.58$ to $-0.84$ over four tasks . The recipe }\DIFdelend \DIFaddbegin \DIFadd{recipe that differ in their loss terms, and scored each on the three detection
 tasks of the first star pool, the tasks we developed the recipe on (Appendix~\ref{app:valloss}).
-On none of the three did the variant }\DIFaddend with the lowest \DIFdelbegin \DIFdel{loss is the one without the prediction term on all four}\DIFdelend \DIFaddbegin \DIFadd{validation reconstruction loss score best}\DIFaddend , and choosing it would \DIFdelbegin \DIFdel{cost
+On none of the three did the variant }\DIFaddend with the lowest \DIFdelbegin \DIFdel{loss is the one without the prediction term on all four, and }\DIFdelend \DIFaddbegin \DIFadd{validation reconstruction loss score best; }\DIFaddend choosing it would \DIFdelbegin \DIFdel{cost
 $0.021$}\DIFdelend \DIFaddbegin \DIFadd{have cost $0.011$}\DIFaddend --\DIFdelbegin \DIFdel{$0.049$ }\DIFdelend \DIFaddbegin \DIFadd{$0.031$
-}\DIFaddend PR-AUC\DIFdelbegin \DIFdel{(Appendix~\ref{app:valloss})}\DIFdelend . An encoder \DIFdelbegin \DIFdel{here }\DIFdelend therefore has to be chosen by a held-out probe, not by its own loss.
+}\DIFaddend PR-AUC\DIFdelbegin \DIFdel{(Appendix~\ref{app:valloss}).
+An encoder here therefore has to be
+chosen by a held-out probe, not by its own loss.
+}\DIFdelend \DIFaddbegin \DIFadd{.
+}\DIFaddend 
 
 \paragraph{\textbf{Limitations and next steps.}} \emph{Readout.} The four \DIFdelbegin \DIFdel{linear-readout arms (}\texttt{\DIFdel{features}}%DIFAUXCMD
 \DIFdelend \DIFaddbegin \DIFadd{linear arms share one small linear model}\DIFaddend , \DIFdelbegin \DIFdel{$\mu$, }\texttt{\DIFdel{features}}%DIFAUXCMD

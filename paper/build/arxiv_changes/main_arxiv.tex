@@ -20,21 +20,30 @@
 
 % Author block (roadmap 2.1). Order matches the OpenReview record (Zijun Liu, Yue Ma, Christopher
 % Theissen); Yue Ma's affiliation is her OpenReview profile's current entry. Co-author e-mail
-% addresses are not printed without their consent. "Hal\i c\i o\u{g}lu" is spelled with the escapes
+% addresses are not printed without their consent (Yue Ma's added 2026-10-07, Theissen's 2026-10-08, each at their request). "Hal\i c\i o\u{g}lu" is spelled with the escapes
 % rather than raw UTF-8 so the file stays ASCII.
+% All three authors are corresponding (roadmap 2.7, agreed 2026-10-06). The \thanks carries the
+% author-contribution statement too, in one first-page footnote; \footnotemark[1] repeats its
+% asterisk on the other two names. The statement follows what each person did, not the template
+% Yue Ma suggested on 2026-09-11 (see tmp/handoff/2026-09-20-authorship-and-contributions-draft.md).
 \author{%
-  Zijun Liu\\
+  Zijun Liu\thanks{Corresponding authors. Z.L. conceived the project and the encoder, designed and
+  ran all experiments, assembled the data and wrote the manuscript. C.A.T. advised on the
+  astrophysics, including probe tasks, data sources and label quality. Y.M. advised on the machine-learning methodology, including the
+  reconstruction artifact, additional controls and interpretation of the results. C.A.T. and Y.M.
+  commented on the manuscript.}\\
   University of California, San Diego\\
-  \texttt{brl055@ucsd.edu}\\
-  \texttt{liuzijun6688@gmail.com}
+  \texttt{brl055@ucsd.edu}
   \And
-  Yue Ma\\
+  Yue Ma\footnotemark[1]\\
   Hal\i c\i o\u{g}lu Data Science Institute\\
-  University of California, San Diego
+  University of California, San Diego\\
+  \texttt{y5ma@ucsd.edu}
   \And
-  Christopher A. Theissen\\
+  Christopher A. Theissen\footnotemark[1]\\
   Department of Astronomy and Astrophysics\\
-  University of California, San Diego
+  University of California, San Diego\\
+  \texttt{ctheissen@ucsd.edu}
 }
 
 \begin{document}
@@ -66,11 +75,11 @@ than they can be labelled. TESS
 thousands of pre-selected stars, and full-frame images of every star in the field at cadences that
 change between mission cycles (30 minutes, then 10, now 200 seconds). LSST \citep{ivezic2019}
 will add \emph{billions} more light curves, albeit at a cadence of days. Self-supervised learning is the
-natural response: pre-train one encoder on the unlabelled archive, then attach a cheap readout for
-each task. Encoders of this shape exist for ground-based, Gaia and Kepler light curves
-\citep{donoso2025astromer2,zuo2025falco,rui2026jepa} and are evaluated by classification accuracy,
+natural response: pre-train one encoder on the unlabelled archive, then attach a cheap readout per
+task. Such encoders exist for ground-based, Gaia and Kepler light curves
+\citep{donoso2025astromer2,zuo2025falco,rui2026jepa} and are scored by classification accuracy,
 sometimes against engineered features \citep{rui2026jepa}; a label-free TESS representation
-\citep{poznanski2026} is evaluated by whether repeat observations of one star lie close in its embedding space.
+\citep{poznanski2026} is evaluated by whether repeat observations of one star embed close together.
 None measures what they add to engineered features.
 
 In this domain, the baseline that a learned encoder must improve on is already strong. Decades of variable-star
@@ -227,8 +236,8 @@ compared seed by seed (Table~\ref{tab:readout}).
 \paragraph{Pick the encoder by a held-out probe, not by its loss.} We trained 29 variants of
 the pre-training recipe that differ in their loss terms, and scored each on the three detection
 tasks of the first star pool, the tasks we developed the recipe on (Appendix~\ref{app:valloss}).
-On none of the three did the variant with the lowest validation reconstruction loss score best, and choosing it would have cost $0.011$--$0.031$
-PR-AUC. An encoder therefore has to be chosen by a held-out probe, not by its own loss.
+On none of the three did the variant with the lowest validation reconstruction loss score best; choosing it would have cost $0.011$--$0.031$
+PR-AUC.
 
 \paragraph{\textbf{Limitations and next steps.}} \emph{Readout.} The four linear arms share one small linear model, which
 cannot rescue weak features, so the comparison is between feature sets. Our claim is confined to
