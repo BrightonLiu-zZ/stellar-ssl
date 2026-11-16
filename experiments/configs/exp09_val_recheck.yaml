@@ -1,0 +1,135 @@
+# exp09_val_recheck -- hand-written manifest (camera-ready roadmap X2; decisions D29, D32)
+#
+# QUESTION. The pre-training recipe was selected on pool 1's TEST split (D29: analyze_exp07_diagnostics.py
+# fits the probe on train and scores test, n_test = 2,021). Would the same selection rules, scored on
+# pool 1's VALIDATION split instead, have reached the same decision?
+#
+# WHAT CHANGES: the scoring split only (test -> val). Probe still fits on train.
+# WHAT IS FROZEN: checkpoints, seeds, estimators (first-segment bag, mean / mean_std pooling,
+# StandardScaler + balanced logistic), gate thresholds, the VOID rule, the paired-by-seed estimator.
+# Nothing trains. Forward passes only (CC background job, live tqdm, resumable per checkpoint).
+#
+# PRE-REGISTERED OUTCOME BRANCHES (D32, written 2026-10-10, before any val number):
+#   same decision      -> body: "selected on test; re-checked on validation, same recipe"
+#   different decision -> disclose which recipe validation would have chosen; do NOT re-train or switch
+#                         (the shipped encoder is frozen by D17; rule 10 of the roadmap)
+
+name: exp09_val_recheck
+date: 2026-11-15
+roadmap: docs/roadmap/2026-10-10-ml4ps-camera-ready-roadmap.md   # row X2
+
+data:
+  packed: experiments/exp01_window256_seq16/packed   # shared w256 pack: train / val / test, every cell
+  window: 256
+  labels: processed/subset/subset_tics.parquet       # v1 labels for all three splits; asserted equal to
+                                                     # experiments/exp06_features_cache.parquet on train+test
+  bag: first-segment                                 # skyline.load_first_segment_blocks
+  tasks: [pulsating, eb, rotation, transit]          # the four v1 tasks every exp09 gate reads
+  app_c_tasks: [pulsating, eb, transit]              # the three tasks Appendix C reports
+  poolings: [mean, mean_std]                         # gate readouts; mean_resid is never a gate input
+  splits_scored: [val, test]                         # test is re-scored too: it is the footing
+
+rounds:
+  exp05:   # ten prediction-term recipes, Fig. valloss_a
+    ckpt: best_recon_aux
+    # swm.eval.readout_sweep encoded ONE STAR PER BATCH; batching 4,096 windows instead moves mu by up to
+    # 3.4e-4 and test PR-AUC by up to 5.2e-4 (measured 2026-11-15 on exp05_comb_off s0), above the 1e-4
+    # footing tolerance. Each round therefore keeps the encoder batching its published numbers used.
+    encode: per_star
+    # probe input memory layout. The mean_std probe (256 collinear columns) is ill-conditioned enough
+    # that BLAS summation order moves test PR-AUC by up to 8.4e-4: the exp07/exp09 numbers came through
+    # pandas DataFrame.to_numpy() (Fortran-ordered), readout_sweep through np.stack (C-ordered).
+    # Measured 2026-11-15 on exp07_comb0p3_fbwd s1 eb: F 0.767147 (= published), C 0.766587.
+    probe_layout: C
+    seeds: [0, 1, 2, 3]
+    cells: [exp05_comb_off,
+            exp05_comb_fwd_c0p1, exp05_comb_fwd_c0p3, exp05_comb_fwd_c1p0,
+            exp05_comb_fbwd_c0p1, exp05_comb_fbwd_c0p3, exp05_comb_fbwd_c1p0,
+            exp05_comb_multi_c0p1, exp05_comb_multi_c0p3, exp05_comb_multi_c1p0]
+  exp07:   # aux-factorization round; hann0p3_fbwd was picked here
+    ckpt: best_recon_aux
+    encode: batched                # analyze_exp07_diagnostics.encode_blocks_batched (4,096 windows)
+    probe_layout: F                # build_table -> DataFrame.to_numpy()
+    cells:
+      exp07_comb0p1_off: [0, 1, 2, 3]
+      exp07_comb0p1_fbwd: [0, 1, 2, 3]
+      exp07_comb0p3_off: [0, 1, 2, 3, 4, 5]
+      exp07_comb0p3_fbwd: [0, 1, 2, 3, 4, 5]
+      exp07_hann0p3_off: [0, 1, 2, 3, 4, 5]
+      exp07_hann0p3_fbwd: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]   # also the exp09 reference
+      exp07_lpsd0p1_off: [0, 1, 2, 3]
+      exp07_lpsd0p1_fbwd: [0, 1, 2, 3]
+      exp07_lpsd0p3_off: [0, 1, 2, 3]
+      exp07_lpsd0p3_fbwd: [0, 1, 2, 3]
+  exp09:   # loss-exploit ladder, waves 1-7; every cell is gated against the reference
+    ckpt: best_recon_only
+    encode: batched
+    probe_layout: F
+    reference: exp07_hann0p3_fbwd
+    cells:
+      exp09_aux_none: [0, 1, 2, 3, 4, 5]
+      exp09_aux_dpss: [0, 1, 2, 3, 4, 5]
+      exp09_aux_impulse_pen: [0, 1, 2, 3, 4, 5]
+      exp09_aux_clip: [0, 1, 2, 3, 4, 5]
+      exp09_aux_dpss_impulse: [0, 1, 2, 3, 4, 5]
+      exp09_dpss_impulse_w0p0125: [0, 1, 2, 3, 4, 5]
+      exp09_dpss_impulse_w0p02: [0, 1, 2, 3, 4, 5]
+      exp09_dpss_impulse_w0p025: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+      exp09_dpss_impulse_w0p03: [0, 1, 2, 3, 4, 5]
+      exp09_dpss_impulse_w0p05: [0, 1, 2, 3, 4, 5]
+      exp09_dpss_impulse_w0p10: [0, 1, 2, 3, 4, 5]
+      exp09_dpss_impulse_w0p20: [0, 1, 2, 3, 4, 5]
+      exp09_clip_hinge_f3p23: [0, 1, 2, 3, 4, 5]
+      exp09_clip_hinge_f5p23: [0, 1, 2, 3, 4, 5]
+      exp09_clip_hinge_f7p54: [0, 1, 2, 3, 4, 5]
+      exp09_hann_w0p025: [0, 1, 2, 3, 4, 5]
+      exp09_hann_w0p10: [0, 1, 2, 3, 4, 5]
+      exp09_dpss_impulse_w0p025_off: [0, 1, 2, 3, 4, 5]
+      exp09_dpss_impulse_w0p03_fb0p01: [0, 1, 2, 3, 4, 5]
+      exp09_dpss_impulse_w0p025_fb0p01: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+
+gates:   # unchanged from experiments/configs/exp09_loss_exploit_ladder.yaml; only the split moves
+  artifact:
+    statistic: "max over 256 positions of per-position recon MSE / median MSE over positions 16-240,
+                per seed, then mean over seeds; all windows of the scored split"
+    G9_bar: 1.5      # pre-registered 2026-08-15, mechanism verdicts
+    G17_bar: 2.0     # declared 2026-08-25 before wave 6, encoder choice
+  noregress: "no v1 task below the reference by more than 2*SE (paired by seed, common seeds), at BOTH
+              mean and mean_std"
+  switch_clause4: ">= 2 of 4 v1 tasks above the reference by more than 2*SE at mean"
+  void: "lambda > 0 and (min seed dose <= 0 or min seed active units <= 0); dose = lambda * train/dyn /
+         train/recon, last 10 epochs; read from the training curves, so split-independent"
+  dose_band: [0.6, 1.4]
+  visual_signoff: "not scored (the switch never fires on numbers alone)"
+
+exp05_exp07_rule: "per Appendix C task: seed-mean PR-AUC at mean pooling; report every cell's rank on
+                   test and on val, the best cell on each, and the rank of the shipped lineage"
+
+footing:   # roadmap rule 8: must hold before any val number is read
+  probe_tolerance: 1.0e-4      # |re-run test PR-AUC - published| per (cell, seed, pooling, task)
+  artifact_tolerance: 1.0e-4   # |re-run test max_ratio - published| per (cell, seed)
+  probe_refs:
+    exp05: "experiments/<cell>/results/readout_sweep.csv (readout logistic, pooling mean)"
+    exp07: "experiments/exp07_aux_gap.csv (seeds 0-3), experiments/exp07_aux_gap_6seed.csv (seeds 0-5)"
+    exp09: "experiments/exp09_diag_*_ro_probe_summary.csv, exp09_diag_ro / w6_new; reference seeds 0-11
+            from experiments/exp09_diag_w6_ref_probe_summary.csv"
+  artifact_refs: "experiments/exp09_impulse*_runs.csv"
+
+compute:
+  device: cuda
+  per_checkpoint: "encode train/val/test first segments + probe (CPU) + artifact profiles on all val
+                   and test windows; one JSON per checkpoint = the resume marker"
+  checkpoints: 226
+  estimate_minutes: 75
+
+outputs:
+  dir: experiments/exp09_val_recheck/
+  runs: runs/<cell>__seed<N>.json            # per checkpoint, written atomically
+  probe: probe.csv                           # cell, seed, pooling, task, split, pr_auc, n, n_pos
+  artifact: artifact.csv                     # cell, seed, split, max_ratio, max_pos, centre, edge
+  footing: footing.csv
+  gates: gates_exp09.csv                     # every exp09 cell, both gates + clause 4 + VOID, test and val
+  ranks: ranks_exp05_exp07.csv
+  valloss: valloss_appc.csv                  # Appendix C statistics recomputed on val
+  readme: README.md
+script: experiments/analyze_exp09_val_recheck.py
