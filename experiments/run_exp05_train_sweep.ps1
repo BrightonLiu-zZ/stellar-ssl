@@ -29,7 +29,7 @@ param(
 $ErrorActionPreference = "Stop"
 $env:PYTHONPATH = "src"
 $env:PYTHONUNBUFFERED = "1"
-$py = "C:\Users\user1\miniconda3\envs\swm\python.exe"
+$py = "C:\Users\user1\.venvs\swm\Scripts\python.exe"
 $repo = "C:\git_repo\Stellar-World-Model"
 $packedSource = "$repo\experiments\exp01_window256_seq16\packed" # exp05 shares the exp01 256/16 packed windows
 

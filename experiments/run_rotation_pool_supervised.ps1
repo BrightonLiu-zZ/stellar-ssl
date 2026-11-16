@@ -18,7 +18,7 @@ param(
 $ErrorActionPreference = "Stop"
 $env:PYTHONPATH = "src"
 $env:PYTHONUNBUFFERED = "1"
-$py = "C:\Users\user1\miniconda3\envs\swm\python.exe"
+$py = "C:\Users\user1\.venvs\swm\Scripts\python.exe"
 $repo = "C:\git_repo\Stellar-World-Model"
 $manifest = "$repo\experiments\configs\rotation_pool.yaml"
 $root = "$repo\experiments\rotation_pool\c1c2"

@@ -34,7 +34,7 @@ param(
 $ErrorActionPreference = "Stop"
 $env:PYTHONPATH = "src"
 $env:PYTHONUNBUFFERED = "1"
-$py = "C:\Users\user1\miniconda3\envs\swm\python.exe"
+$py = "C:\Users\user1\.venvs\swm\Scripts\python.exe"
 
 # -Smoke writes EVERYTHING into a throwaway namespace, so a shakedown can never leave limited-data
 # numbers sitting at the paths the notebook and the writeups read.

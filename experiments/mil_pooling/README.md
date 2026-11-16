@@ -299,7 +299,7 @@ beta_crit = O(log K) effect seen on v1 transit, now on continuous targets.
 ## How to run
 
 ```powershell
-$env:PYTHONPATH="src"; $py="C:\Users\user1\miniconda3\envs\swm\python.exe"
+$env:PYTHONPATH="src"; $py="C:\Users\user1\.venvs\swm\Scripts\python.exe"
 # 1. bag caches (9 arms x 2 scopes; ~11 s/arm first, ~30 s/arm all; fp16, segment offsets kept)
 & $py -m swm.eval.mil_cache --cells exp05_comb_fbwd_c1p0 exp05_comb_off --seeds 0 1 2 3 --scope first
 & $py -m swm.eval.mil_cache --cells exp05_comb_fbwd_c1p0 exp05_comb_off --seeds 0 1 2 3 --scope all
@@ -328,7 +328,7 @@ $P="mean max quantile3 moments mean_std mean_skew rff_meanmap" -split ' '
 # 3. consolidate + headline tables, then the notebook
 & $py -m swm.eval.mil_report
 & $py -m swm.eval.mil_report --pool new_task
-conda.exe run -n swm jupyter nbconvert --to notebook --execute --inplace `
+& "C:\Users\user1\.venvs\swm\Scripts\jupyter.exe" nbconvert --to notebook --execute --inplace `
   --ExecutePreprocessor.kernel_name=swm src/notebooks/mil_pooling.ipynb
 ```
 

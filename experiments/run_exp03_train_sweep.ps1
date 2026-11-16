@@ -11,7 +11,7 @@
 $ErrorActionPreference = "Stop"
 $env:PYTHONPATH = "src"
 $env:PYTHONUNBUFFERED = "1"
-$py = "C:\Users\user1\miniconda3\envs\swm\python.exe"
+$py = "C:\Users\user1\.venvs\swm\Scripts\python.exe"
 $packedSource = "C:\git_repo\Stellar-World-Model\experiments\exp01_window256_seq16\packed"
 
 # objective slug -> extra overrides (none = pure time-MSE control, defaults already type=none/weight=0)

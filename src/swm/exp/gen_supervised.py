@@ -87,7 +87,7 @@ def render(manifest: dict, manifest_path: Path) -> str:
         '$ErrorActionPreference = "Stop"',
         '$env:PYTHONPATH = "src"',
         '$env:PYTHONUNBUFFERED = "1"',
-        '$py = "C:\\Users\\user1\\miniconda3\\envs\\swm\\python.exe"',
+        '$py = "C:\\Users\\user1\\.venvs\\swm\\Scripts\\python.exe"',
         '$repo = "C:\\git_repo\\Stellar-World-Model"',
         f'$manifest = "$repo\\{manifest_path.as_posix().replace("/", chr(92))}"',
         f'$root = "$repo\\{root.replace("/", chr(92))}"',

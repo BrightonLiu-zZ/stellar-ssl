@@ -13,7 +13,7 @@
 
 $ErrorActionPreference = 'Continue'
 Set-Location (Split-Path $PSScriptRoot -Parent)
-$py = 'C:\Users\user1\miniconda3\envs\swm\python.exe'
+$py = 'C:\Users\user1\.venvs\swm\Scripts\python.exe'
 $env:PYTHONPATH = 'src'
 $env:PYTHONUNBUFFERED = '1'
 

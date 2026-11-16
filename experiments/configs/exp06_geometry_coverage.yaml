@@ -36,7 +36,7 @@ plan: docs/plans/2026-07-27-exp06-geometry-coverage.md
 #  - dyn-off arm = same-direction robustness check, not gated (avoids doubling gate count).
 
 env:
-  python: C:/Users/user1/miniconda3/envs/swm/python.exe
+  python: C:/Users/user1/.venvs/swm/Scripts/python.exe
   pythonpath: src
 
 paths:

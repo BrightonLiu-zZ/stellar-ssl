@@ -14,7 +14,7 @@
 $ErrorActionPreference = "Stop"
 $env:PYTHONPATH = "src"
 $env:PYTHONUNBUFFERED = "1"
-$py = "C:\Users\user1\miniconda3\envs\swm\python.exe"
+$py = "C:\Users\user1\.venvs\swm\Scripts\python.exe"
 $out = "experiments/new_task_exp05"
 
 $offArms  = @("comb_off_s0", "comb_off_s1", "comb_off_s2", "comb_off_s3")

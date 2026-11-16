@@ -6,12 +6,12 @@ See `docs/plans/0008-stage1-pretrain-stage2-probe.md` for the full design and lo
 
 ## Environment
 
-Runs in the dedicated **`swm`** conda env (CUDA), NOT `astro`:
-`C:\Users\user1\miniconda3\envs\swm\python.exe` (torch 2.5.1+cu121, hydra, wandb, sklearn).
+Runs in the dedicated **`swm`** uv venv (CUDA), NOT `astro`:
+`C:\Users\user1\.venvs\swm\Scripts\python.exe` (torch 2.5.1+cu121, hydra, wandb, sklearn).
 Set `PYTHONPATH` to the repo `src/` so `swm` is importable.
 
 ```powershell
-$py = "C:\Users\user1\miniconda3\envs\swm\python.exe"
+$py = "C:\Users\user1\.venvs\swm\Scripts\python.exe"
 $env:PYTHONPATH = "C:\git_repo\Stellar-World-Model\src"
 ```
 

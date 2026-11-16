@@ -39,7 +39,7 @@ adds fwd+bwd and multistep modes, watching for latent collapse.
 #    else SeqWindowDataset asserts "missing .../packed/train_index.parquet".
 #    max_epochs must exceed beta_warmup_epochs (10) or dyn is read mid-warmup and is NOT steady.
 #    (data.limit is a PACK-time knob only - inert here since packed is reused.)
-$env:PYTHONPATH="src"; $py="C:\Users\user1\miniconda3\envs\swm\python.exe"
+$env:PYTHONPATH="src"; $py="C:\Users\user1\.venvs\swm\Scripts\python.exe"
 $packed="C:/git_repo/Stellar-World-Model/experiments/exp01_window256_seq16/packed"
 & $py -m swm.train +experiment=exp05/base_comb model.dyn_mode=multistep train.lambda_dyn=1 `
     paths.packed_dir=$packed train.max_epochs=14 train.resume=false train.wandb.mode=disabled `

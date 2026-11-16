@@ -46,8 +46,8 @@ contrasts such as fusion minus features, with their 2 SE band and the per-seed d
 | `swm` | `environment-swm.yml` | everything under `src/swm/`, the `experiments/` analysis scripts, the paper's tables and figures; PyTorch 2.5.1 + CUDA 12.1 |
 
 ```bash
-conda env create -f environment.yml
-conda env create -f environment-swm.yml
+conda env create -f environment.yml        # author's machine: uv venvs at C:\Users\user1\.venvs\{astro,swm}
+conda env create -f environment-swm.yml    #   (same pinned versions, built with uv pip install)
 conda activate swm
 export PYTHONPATH=src          # PowerShell: $env:PYTHONPATH = "src"
 python -m pytest src/swm/tests -q

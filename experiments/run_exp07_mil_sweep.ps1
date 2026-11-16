@@ -7,7 +7,7 @@
 $ErrorActionPreference = "Stop"
 $env:PYTHONPATH = "src"
 $env:PYTHONUNBUFFERED = "1"
-$py = "C:\Users\user1\miniconda3\envs\swm\python.exe"
+$py = "C:\Users\user1\.venvs\swm\Scripts\python.exe"
 $cells = @("exp07_hann0p3_fbwd", "exp07_hann0p3_off", "exp07_comb0p3_fbwd", "exp07_comb0p3_off")
 
 foreach ($cell in $cells) {

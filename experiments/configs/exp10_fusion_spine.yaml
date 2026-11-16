@@ -141,7 +141,7 @@ adr: null   # no hard-constraint change in this wave; ADR-0013 (fc-dims-are-hype
 # =====================================================================================================
 
 env:
-  python: C:/Users/user1/miniconda3/envs/swm/python.exe
+  python: C:/Users/user1/.venvs/swm/Scripts/python.exe
   pythonpath: src
 
 paths:
