@@ -46,7 +46,7 @@ plan: docs/plans/2026-08-01-exp07-aux-factorization.md
 #      G-dose:     achieved lambda*dyn/recon (last-10-epoch train) in [0.6, 1.4] for every fbwd cell.
 
 env:
-  python: C:/Users/user1/miniconda3/envs/swm/python.exe
+  python: C:/Users/user1/.venvs/swm/Scripts/python.exe
   pythonpath: src
 
 paths:
@@ -182,7 +182,9 @@ eval:
   variant: B
   checkpoint: best_recon_aux
   untrained_reference: capacity-matched w256, per-invocation (NEVER automatic - exp04 memory)
-  readout: # v1 linear lock; winner selected on ABSOLUTE val score (F4); gaps reported as context
+  readout: # v1 linear lock; winner selected on ABSOLUTE pool-1 TEST score (F4; corrected 2026-11-15 -- this line
+           # said "val", but analyze_exp07_diagnostics.py scores test; val re-check: experiments/exp09_val_recheck/);
+           # gaps reported as context
     primary_gate: "logistic on mean-pooled mu (raw + amplitude-residualized), full first-segment bag"
     residualize_scalars: [p2p_scatter_ratio, depth_5_95, mad, iqr]
     secondary: [mean_std]
