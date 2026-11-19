@@ -1,10 +1,18 @@
-"""List every link in main.pdf: anchor text, named destination, landing page and landing text."""
+"""List every link in a built PDF: anchor text, named destination, landing page and landing text.
+
+Usage: uv run --with pymupdf python paper/build/check_links.py [PDF]
+The default is the preprint build of build_and_check.sh; pass
+paper/build/out/camera_ready/main.pdf for the workshop build. paper/main.pdf is only refreshed by
+build_and_check.sh --install, so it is not the default.
+"""
 
 import sys
 import fitz
 sys.stdout.reconfigure(encoding="utf-8")
 
-doc = fitz.open(r"C:/git_repo/Stellar-World-Model/paper/main.pdf")
+pdf_path = sys.argv[1] if len(sys.argv) > 1 else r"C:/git_repo/Stellar-World-Model/paper/build/out/preprint/main.pdf"
+doc = fitz.open(pdf_path)
+print("checking", pdf_path)
 names = doc.resolve_names()
 count = 0
 for pno, page in enumerate(doc, 1):
