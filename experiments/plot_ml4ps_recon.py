@@ -229,7 +229,7 @@ def main() -> int:
     ax.set_yscale("log")
     ax.set_ylim(0.55, 60)
     ax.set_xlim(0, WINDOW - 1)
-    ax.set_xlabel("position within the 256-cadence window", fontsize=8)
+    ax.set_xlabel("position within the 256-point window", fontsize=8)
     ax.set_ylabel("reconstruction MSE\n/ interior median", fontsize=8)
     ax.tick_params(labelsize=7)
     ax.legend(fontsize=7, loc="upper left", framealpha=0.9)
