@@ -575,9 +575,10 @@ def main() -> None:
                              "the dynamics-off + untrained controls (the pre-wave-5 figure)")
     parser.add_argument("--unseen-csv", type=Path,
                         default=Path("experiments/unseen_pretraining/unseen_rescore.csv"))
-    parser.add_argument("--fig-size", type=float, nargs=2, default=[5.5, 1.65], metavar=("W", "H"),
+    parser.add_argument("--fig-size", type=float, nargs=2, default=[5.5, 2.1], metavar=("W", "H"),
                         help="Figure 1 canvas in inches; fonts are absolute, so a smaller canvas printed at the "
-                             "same width reads larger")
+                             "same width reads larger. Height 2.1 (was 1.65) since the camera-ready's fifth page "
+                             "left room to space the ten rows out (author's choice, 2026-11-18)")
     parser.add_argument("--font-size", type=float, default=7)
     args = parser.parse_args()
 
