@@ -1,0 +1,1446 @@
+\documentclass{article}
+%DIF LATEXDIFF DIFFERENCE FILE
+%DIF DEL build/camera_ready_changes/old/main.tex   Wed Nov 18 21:49:49 2026
+%DIF ADD build/camera_ready_changes/new/main.tex   Wed Nov 18 21:49:47 2026
+
+\usepackage[preprint]{neurips_2026}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{booktabs}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+%DIF 12c12
+%DIF < \usepackage{amssymb}   % \lesssim in Appendix A; amsmath alone does not define it
+%DIF -------
+\usepackage{amssymb}   % \lesssim in the negatives appendix; amsmath alone does not define it %DIF > 
+%DIF -------
+\usepackage{nicefrac}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{graphicx}
+%DIF 17c17-18
+%DIF < \usepackage{float}     % [H] for the Appendix C figure, so it stays with its paragraph
+%DIF -------
+\usepackage{float}     % [H] keeps each appendix float with its paragraph %DIF > 
+\usepackage{array}     % ragged-right p{} columns in the appendix task table %DIF > 
+%DIF -------
+
+\title{What does self-supervision add to engineered features\\for stellar light curves?}
+
+% Author block (roadmap 2.1). Order matches the OpenReview record (Zijun Liu, Yue Ma, Christopher
+% Theissen); Yue Ma's affiliation is her OpenReview profile's current entry. Co-author e-mail
+% addresses are not printed without their consent (Yue Ma's added 2026-10-07, Theissen's 2026-10-08, each at their request). "Hal\i c\i o\u{g}lu" is spelled with the escapes
+% rather than raw UTF-8 so the file stays ASCII.
+% All three authors are corresponding (roadmap 2.7, agreed 2026-10-06). The \thanks carries the
+% author-contribution statement too, in one first-page footnote; \footnotemark[1] repeats its
+% asterisk on the other two names. The statement follows what each person did, not the template
+% Yue Ma suggested on 2026-09-11 (see tmp/handoff/2026-09-20-authorship-and-contributions-draft.md).
+\author{%
+  Zijun Liu\thanks{Corresponding authors. Z.L. conceived the project and the encoder, designed and
+  ran all experiments, assembled the data and wrote the manuscript. C.A.T. advised on the
+  astrophysics, including probe tasks, data sources and label quality. Y.M. advised on the machine-learning methodology, including the
+  reconstruction artifact, additional controls and interpretation of the results. C.A.T. and Y.M.
+  commented on the manuscript.}\\
+  University of California, San Diego\\
+  \texttt{brl055@ucsd.edu}
+  \And
+  Yue Ma\footnotemark[1]\\
+  Hal\i c\i o\u{g}lu Data Science Institute\\
+  University of California, San Diego\\
+  \texttt{y5ma@ucsd.edu}
+  \And
+  Christopher A. Theissen\footnotemark[1]\\
+  Department of Astronomy and Astrophysics\\
+  University of California, San Diego\\
+  \texttt{ctheissen@ucsd.edu}
+}
+%DIF PREAMBLE EXTENSION ADDED BY LATEXDIFF
+%DIF UNDERLINE PREAMBLE %DIF PREAMBLE
+\RequirePackage[normalem]{ulem} %DIF PREAMBLE
+\RequirePackage{color}\definecolor{RED}{rgb}{1,0,0}\definecolor{BLUE}{rgb}{0,0,1} %DIF PREAMBLE
+\providecommand{\DIFaddtex}[1]{{\protect\color{blue}\uwave{#1}}} %DIF PREAMBLE
+\providecommand{\DIFdeltex}[1]{{\protect\color{red}\sout{#1}}} %DIF PREAMBLE
+%DIF SAFE PREAMBLE %DIF PREAMBLE
+\providecommand{\DIFaddbegin}{} %DIF PREAMBLE
+\providecommand{\DIFaddend}{} %DIF PREAMBLE
+\providecommand{\DIFdelbegin}{} %DIF PREAMBLE
+\providecommand{\DIFdelend}{} %DIF PREAMBLE
+\providecommand{\DIFmodbegin}{} %DIF PREAMBLE
+\providecommand{\DIFmodend}{} %DIF PREAMBLE
+%DIF FLOATSAFE PREAMBLE %DIF PREAMBLE
+\providecommand{\DIFaddFL}[1]{\DIFadd{#1}} %DIF PREAMBLE
+\providecommand{\DIFdelFL}[1]{\DIFdel{#1}} %DIF PREAMBLE
+\providecommand{\DIFaddbeginFL}{} %DIF PREAMBLE
+\providecommand{\DIFaddendFL}{} %DIF PREAMBLE
+\providecommand{\DIFdelbeginFL}{} %DIF PREAMBLE
+\providecommand{\DIFdelendFL}{} %DIF PREAMBLE
+%DIF HYPERREF PREAMBLE %DIF PREAMBLE
+\providecommand{\DIFadd}[1]{\texorpdfstring{\DIFaddtex{#1}}{#1}} %DIF PREAMBLE
+\providecommand{\DIFdel}[1]{\texorpdfstring{\DIFdeltex{#1}}{}} %DIF PREAMBLE
+\providecommand{\DIFscaledelfig}{0.5}
+%DIF HIGHLIGHTGRAPHICS PREAMBLE %DIF PREAMBLE
+\RequirePackage{settobox} %DIF PREAMBLE
+\RequirePackage{letltxmacro} %DIF PREAMBLE
+\newsavebox{\DIFdelgraphicsbox} %DIF PREAMBLE
+\newlength{\DIFdelgraphicswidth} %DIF PREAMBLE
+\newlength{\DIFdelgraphicsheight} %DIF PREAMBLE
+% store original definition of \includegraphics %DIF PREAMBLE
+\LetLtxMacro{\DIFOincludegraphics}{\includegraphics} %DIF PREAMBLE
+\providecommand{\DIFaddincludegraphics}[2][]{{\color{blue}\fbox{\DIFOincludegraphics[#1]{#2}}}} %DIF PREAMBLE
+\providecommand{\DIFdelincludegraphics}[2][]{% %DIF PREAMBLE
+\sbox{\DIFdelgraphicsbox}{\DIFOincludegraphics[#1]{#2}}% %DIF PREAMBLE
+\settoboxwidth{\DIFdelgraphicswidth}{\DIFdelgraphicsbox} %DIF PREAMBLE
+\settoboxtotalheight{\DIFdelgraphicsheight}{\DIFdelgraphicsbox} %DIF PREAMBLE
+\scalebox{\DIFscaledelfig}{% %DIF PREAMBLE
+\parbox[b]{\DIFdelgraphicswidth}{\usebox{\DIFdelgraphicsbox}\\[-\baselineskip] \rule{\DIFdelgraphicswidth}{0em}}\llap{\resizebox{\DIFdelgraphicswidth}{\DIFdelgraphicsheight}{% %DIF PREAMBLE
+\setlength{\unitlength}{\DIFdelgraphicswidth}% %DIF PREAMBLE
+\begin{picture}(1,1)% %DIF PREAMBLE
+\thicklines\linethickness{2pt} %DIF PREAMBLE
+{\color[rgb]{1,0,0}\put(0,0){\framebox(1,1){}}}% %DIF PREAMBLE
+{\color[rgb]{1,0,0}\put(0,0){\line( 1,1){1}}}% %DIF PREAMBLE
+{\color[rgb]{1,0,0}\put(0,1){\line(1,-1){1}}}% %DIF PREAMBLE
+\end{picture}% %DIF PREAMBLE
+}\hspace*{3pt}}} %DIF PREAMBLE
+} %DIF PREAMBLE
+\LetLtxMacro{\DIFOaddbegin}{\DIFaddbegin} %DIF PREAMBLE
+\LetLtxMacro{\DIFOaddend}{\DIFaddend} %DIF PREAMBLE
+\LetLtxMacro{\DIFOdelbegin}{\DIFdelbegin} %DIF PREAMBLE
+\LetLtxMacro{\DIFOdelend}{\DIFdelend} %DIF PREAMBLE
+\DeclareRobustCommand{\DIFaddbegin}{\DIFOaddbegin \let\includegraphics\DIFaddincludegraphics} %DIF PREAMBLE
+\DeclareRobustCommand{\DIFaddend}{\DIFOaddend \let\includegraphics\DIFOincludegraphics} %DIF PREAMBLE
+\DeclareRobustCommand{\DIFdelbegin}{\DIFOdelbegin \let\includegraphics\DIFdelincludegraphics} %DIF PREAMBLE
+\DeclareRobustCommand{\DIFdelend}{\DIFOaddend \let\includegraphics\DIFOincludegraphics} %DIF PREAMBLE
+\LetLtxMacro{\DIFOaddbeginFL}{\DIFaddbeginFL} %DIF PREAMBLE
+\LetLtxMacro{\DIFOaddendFL}{\DIFaddendFL} %DIF PREAMBLE
+\LetLtxMacro{\DIFOdelbeginFL}{\DIFdelbeginFL} %DIF PREAMBLE
+\LetLtxMacro{\DIFOdelendFL}{\DIFdelendFL} %DIF PREAMBLE
+\DeclareRobustCommand{\DIFaddbeginFL}{\DIFOaddbeginFL \let\includegraphics\DIFaddincludegraphics} %DIF PREAMBLE
+\DeclareRobustCommand{\DIFaddendFL}{\DIFOaddendFL \let\includegraphics\DIFOincludegraphics} %DIF PREAMBLE
+\DeclareRobustCommand{\DIFdelbeginFL}{\DIFOdelbeginFL \let\includegraphics\DIFdelincludegraphics} %DIF PREAMBLE
+\DeclareRobustCommand{\DIFdelendFL}{\DIFOaddendFL \let\includegraphics\DIFOincludegraphics} %DIF PREAMBLE
+%DIF AMSMATHULEM PREAMBLE %DIF PREAMBLE
+\makeatletter %DIF PREAMBLE
+\let\sout@orig\sout %DIF PREAMBLE
+\renewcommand{\sout}[1]{\ifmmode\text{\sout@orig{\ensuremath{#1}}}\else\sout@orig{#1}\fi} %DIF PREAMBLE
+\makeatother %DIF PREAMBLE
+%DIF COLORLISTINGS PREAMBLE %DIF PREAMBLE
+\RequirePackage{listings} %DIF PREAMBLE
+\RequirePackage{color} %DIF PREAMBLE
+\lstdefinelanguage{DIFcode}{ %DIF PREAMBLE
+%DIF DIFCODE_UNDERLINE %DIF PREAMBLE
+  moredelim=[il][\color{red}\sout]{\%DIF\ <\ }, %DIF PREAMBLE
+  moredelim=[il][\color{blue}\uwave]{\%DIF\ >\ } %DIF PREAMBLE
+} %DIF PREAMBLE
+\lstdefinestyle{DIFverbatimstyle}{ %DIF PREAMBLE
+	language=DIFcode, %DIF PREAMBLE
+	basicstyle=\ttfamily, %DIF PREAMBLE
+	columns=fullflexible, %DIF PREAMBLE
+	keepspaces=true %DIF PREAMBLE
+} %DIF PREAMBLE
+\lstnewenvironment{DIFverbatim}[1][]{\lstset{style=DIFverbatimstyle}}{} %DIF PREAMBLE
+\lstnewenvironment{DIFverbatim*}[1][]{\lstset{style=DIFverbatimstyle,showspaces=true}}{} %DIF PREAMBLE
+\lstset{extendedchars=\true,inputencoding=utf8}
+
+%DIF END PREAMBLE EXTENSION ADDED BY LATEXDIFF
+
+\begin{document}
+
+\maketitle
+\noindent{\footnotesize\textit{Changes from the arXiv v1 build (commit \texttt{54638f7}) to the camera-ready draft, marked by latexdiff: \textcolor{red}{red struck-through} removed, \textcolor{blue}{blue underlined} added. The appendices were reordered into first-citation order (A--J); the arXiv v1 text is shown in the new order so that the edits inside each appendix are marked rather than the whole appendix.}}\par\medskip
+
+
+\begin{abstract}
+TESS light curves encode a star's pulsation, rotation, binarity and oscillations, among other physical
+properties, but the survey
+produces far more light curves than can be labelled by hand. Astronomers have engineered a few
+dozen physically motivated features from them, which together remain a strong baseline. Previous work has trained
+encoders on light curves and judged them by their own downstream scores, but has not asked what
+they add to the engineered features. We pre-train a convolutional encoder on \DIFdelbegin \DIFdel{unlabelled }\DIFdelend TESS light curves\DIFaddbegin \DIFadd{, using no labels, }\DIFaddend to predict each
+window's latent representation from those of its neighbours. We then freeze it, add its features to
+the 25 engineered features, and read the combination out with one fixed linear probe on ten tasks
+\DIFdelbegin \DIFdel{:
+}\DIFdelend \DIFaddbegin \DIFadd{(}\DIFaddend five variability classes, four asteroseismic targets and rotation period\DIFaddbegin \DIFadd{)}\DIFaddend . Adding the learned
+features improves \DIFdelbegin \DIFdel{the readout }\DIFdelend \DIFaddbegin \DIFadd{this linear readout over the engineered features alone }\DIFaddend on 7 of 10 tasks \DIFdelbegin \DIFdel{over the engineered features alone}\DIFdelend \DIFaddbegin \DIFadd{(six of
+them also when the test stars are resampled)}\DIFaddend , where an untrained encoder does not. The combination also outperforms two networks trained end-to-end on the same labelled
+stars on most tasks. An encoder trained without labels therefore gives astronomers new features
+that complement the ones they already use rather than replace them.
+\end{abstract}
+
+\section{Introduction}
+
+A star's light curve carries its pulsation, rotation, eclipses and oscillations, and with them its
+age, interior and companions. Wide-field surveys now produce light curves far faster
+than they can be labelled. \DIFdelbegin \DIFdel{TESS
+\mbox{%DIFAUXCMD
+\citep{ricker2015} }\hskip0pt%DIFAUXCMD
+}\DIFdelend \DIFaddbegin \DIFadd{The Transiting Exoplanet Survey Satellite (TESS;
+\mbox{%DIFAUXCMD
+\citealt{ricker2015}}\hskip0pt%DIFAUXCMD
+), observing since July 2018, }\DIFaddend returns 2-minute or 20-second \citep{huber2022} light curves for hundreds of
+thousands of pre-selected stars, and full-frame images of every star in the field at cadences that
+change between mission cycles (30 minutes, then 10, now 200 seconds). \DIFdelbegin \DIFdel{LSST \mbox{%DIFAUXCMD
+\citep{ivezic2019}
+}\hskip0pt%DIFAUXCMD
+}\DIFdelend \DIFaddbegin \DIFadd{The Rubin Observatory's Legacy
+Survey of Space and Time (LSST; \mbox{%DIFAUXCMD
+\citealt{ivezic2019}}\hskip0pt%DIFAUXCMD
+) }\DIFaddend will add \emph{billions} more light curves, albeit at a cadence of days. \DIFdelbegin \DIFdel{Self-supervised learning is the
+natural response : pre-train }\DIFdelend \DIFaddbegin \DIFadd{The natural response is
+self-supervised learning, which pre-trains }\DIFaddend one encoder on the unlabelled archive \DIFdelbegin \DIFdel{, then attach }\DIFdelend \DIFaddbegin \DIFadd{and attaches }\DIFaddend a cheap
+readout per task. Such encoders exist for ground-based, Gaia and Kepler light curves
+\citep{donoso2025astromer2,zuo2025falco,rui2026jepa} and are scored by classification accuracy,
+sometimes against engineered features \citep{rui2026jepa}; a label-free TESS representation
+\citep{poznanski2026} is evaluated by whether repeat observations of one star embed close together.
+None measures what they add to engineered features.
+
+In this domain, the baseline that a learned encoder must improve on is already strong. Decades of variable-star
+research have distilled light curves into compact engineered summaries \DIFdelbegin \DIFdel{: }\DIFdelend \DIFaddbegin \DIFadd{such as }\DIFaddend periodogram peak
+structure, band-limited power, spectral entropy and robust scatter statistics. The benchmark of
+\citet{li2025staremb} makes the point sharply\DIFdelbegin \DIFdel{: across }\DIFdelend \DIFaddbegin \DIFadd{. Across }\DIFaddend seven expert-labelled variable-star classes, no
+time-series foundation model they tested strictly surpassed the long-established domain feature
+baseline on classification. A learned encoder for this data therefore has to \DIFdelbegin \DIFdel{answer one question: do }\DIFdelend \DIFaddbegin \DIFadd{show that }\DIFaddend its features
+add predictive signal to the engineered features under the same readout\DIFdelbegin \DIFdel{?
+}\DIFdelend \DIFaddbegin \DIFadd{.
+}\DIFaddend 
+
+We measure that directly. We pre-train an encoder\DIFdelbegin \DIFdel{on TESS light curves , }\DIFdelend \DIFaddbegin \DIFadd{, without labels, on the light curves of 13}{\DIFadd{,}}\DIFadd{470
+TESS stars drawn to enrich transit hosts, eclipsing binaries and pulsators, }\DIFaddend freeze it, and add its
+features to the 25 engineered features under one fixed linear readout. Our contributions are:
+
+\begin{itemize}
+\item \textbf{The learned features add to the engineered features rather than replacing them.}
+Adding the learned features to the engineered ones improves a fixed linear readout beyond
+$2\,\mathrm{SE}$ on 7 of 10 tasks, on each of which an untrained encoder gives no such gain, so the gain comes
+from pre-training, not from merely adding 128 columns.
+\item \textbf{The combined pipeline, read out by a fixed linear model, outperforms the two
+supervised networks we train end-to-end on the same labels on most tasks.} Against a supervised Conv1D with the
+encoder's architecture it is ahead on 7
+of 10 tasks and indistinguishable on the other 3; against an MLP on raw flux it is ahead on 8 of 10.
+\end{itemize}
+
+\section{Data and method}
+
+\paragraph{Data.} We use \DIFaddbegin \DIFadd{the }\DIFaddend 2-minute \DIFdelbegin \DIFdel{SPOC PDCSAP }\DIFdelend \DIFaddbegin \DIFadd{PDCSAP (Pre-search Data Conditioning Simple Aperture
+Photometry) }\DIFaddend light curves of \DIFaddbegin \DIFadd{the TESS Science Processing Operations Center (SPOC), for }\DIFaddend stars brighter than TESS magnitude
+$T = 10$ from Sectors 27--101. \DIFdelbegin \DIFdel{Pre-training and three of the ten probes (pulsating, eclipsing
+binary and transit)use a label-enriched subset of }\DIFdelend \DIFaddbegin \DIFadd{Each light curve is split into segments at every missing point
+and every point the SPOC pipeline flags as unreliable, a time jump longer than five times the usual
+sampling interval counting as a missing point. Each segment has its median subtracted, is divided by
+its median absolute deviation, and is sliced into non-overlapping windows of 256 points ($256 \times 120$\,s $\approx 8.5$\,h). We store a segment only if it holds
+at least 16 windows. Segments are cut in whole blocks of four windows and none in this data holds
+more than five blocks, so every stored segment holds 16 or 20 windows (5.69 or 7.11\,d;
+Appendix~\ref{app:training}). Nothing is interpolated or padded, and segments are never stitched
+across sector or gap boundaries. Each pre-training example is 16 consecutive windows starting at a
+random point in a stored segment.
+}
+
+\DIFadd{Stars come from three pools (Appendix~\ref{app:pools}). The first holds }\DIFaddend 13{,}470 stars, \DIFdelbegin \DIFdel{split 70/15/15
+by star: every star
+}\DIFdelend \DIFaddbegin \DIFadd{every star
+with a stored segment that is }\DIFaddend labelled as a transit host, eclipsing binary or pulsator\DIFdelbegin \DIFdel{that has a usable
+window, plus
+a random sample of }\DIFdelend \DIFaddbegin \DIFadd{, plus
+}\DIFaddend 10{,}000 \DIFdelbegin \DIFdel{quiet stars, }\DIFdelend \DIFaddbegin \DIFadd{randomly drawn quiet stars }\DIFaddend listed in none of our variability catalogues. \DIFaddbegin \DIFadd{It is split
+70/15/15 by star into training, validation and test sets, the encoder is pre-trained on its training
+stars only, and three tasks are scored on it. }\DIFaddend The pre-training loss never sees a label, but this pool
+is \DIFdelbegin \DIFdel{label-enriched}\DIFdelend \DIFaddbegin \DIFadd{enriched in labelled stars}\DIFaddend , not a random draw from the survey. Five \DIFdelbegin \DIFdel{probes }\DIFdelend \DIFaddbegin \DIFadd{tasks }\DIFaddend draw their labels from
+catalogues that barely overlap \DIFdelbegin \DIFdel{this subset }\DIFdelend \DIFaddbegin \DIFadd{the first pool }\DIFaddend and are scored on a second pool of 22{,}860 stars built
+the same way. \DIFdelbegin \DIFdel{The two rotation probes are scored
+on the 106}%DIFDELCMD < {%%%
+\DIFdel{,}%DIFDELCMD < }%%%
+\DIFdel{284 corpus stars outside the first pool, split 70/15/15, where rotators are a natural
+13\% (Appendix~\ref{app:rotpool}). No test star of the first pool and no star of the rotation pool
+enters pre-training. }\DIFdelend About 8\% of \DIFdelbegin \DIFdel{the second pool's }\DIFdelend \DIFaddbegin \DIFadd{its }\DIFaddend test stars (265 of 3{,}429) were \DIFdelbegin \DIFdel{in the }\DIFdelend pre-training \DIFdelbegin \DIFdel{subset; }\DIFdelend \DIFaddbegin \DIFadd{stars, and }\DIFaddend removing them
+leaves every gain in place (Appendix~\ref{app:unseen}). \DIFdelbegin \DIFdel{Each light curve is split into segments wherever the
+time axis
+breaks,at a missing cadence or a jump longer than five median cadences; segments are
+median-normalised by their median absolute deviation and sliced into non-overlapping windows of 256
+cadences ($256 \times 120$\,s $\approx 8.5$\,h). Windows with a missing value are discarded, never interpolated or padded,
+and
+segments are never stitched across sector or gap boundaries. Each }\DIFdelend \DIFaddbegin \DIFadd{The two rotation tasks are scored on the
+other 106}{\DIFadd{,}}\DIFadd{284 stars with a stored segment, none of them a }\DIFaddend pre-training \DIFdelbegin \DIFdel{example is 16
+consecutive windows ($\approx 5.69$\,d)starting at a random point in a segment}\DIFdelend \DIFaddbegin \DIFadd{star, split the same way and
+with rotators at their natural share of 13\% (Appendix~\ref{app:rotpool})}\DIFaddend .
+
+\paragraph{Encoder.} A 1D convolutional variational encoder \citep{kingma2014} maps each window \DIFaddbegin \DIFadd{$x$
+}\DIFaddend to a 128-dimensional Gaussian posterior \DIFdelbegin \DIFdel{, and a GRU \mbox{%DIFAUXCMD
+\citep{cho2014} }\hskip0pt%DIFAUXCMD
+}\DIFdelend \DIFaddbegin \DIFadd{with mean $\mu$; a sample $z$ from it is decoded into a
+reconstruction $\hat{x}$ by a transposed-convolution decoder that mirrors the encoder. A gated
+recurrent unit (GRU; \mbox{%DIFAUXCMD
+\citealt{cho2014}}\hskip0pt%DIFAUXCMD
+) reads the posterior means $\mu_{1},\dots,\mu_{t}$ of a run of
+windows and }\DIFaddend predicts the next \DIFdelbegin \DIFdel{window's latent from
+its predecessors, run both forward and backward over the sequence}\DIFdelend \DIFaddbegin \DIFadd{one, $\hat{\mu}_{t+1}$; a second, separate GRU reads the run backwards
+and predicts $\hat{\mu}_{t-1}$}\DIFaddend . The objective is
+\begin{align*}
+\mathcal{L} = {} & \|\hat{x}-x\|^{2} + \beta\,\mathrm{KL}
++ \lambda\big[\|\DIFdelbegin %DIFDELCMD < \hat{z}%%%
+\DIFdelend \DIFaddbegin \hat{\mu}\DIFaddend _{t+1}-\DIFdelbegin %DIFDELCMD < \bar{z}%%%
+\DIFdelend \DIFaddbegin \bar{\mu}\DIFaddend _{t+1}\|^{2} + \|\DIFdelbegin %DIFDELCMD < \hat{z}%%%
+\DIFdelend \DIFaddbegin \hat{\mu}\DIFaddend _{t-1}-\DIFdelbegin %DIFDELCMD < \bar{z}%%%
+\DIFdelend \DIFaddbegin \bar{\mu}\DIFaddend _{t-1}\|^{2}\big] \\
+& + w\big[\|\log P_{H}(\hat{x})-\log P_{H}(x)\|^{2} + \|\Delta\hat{x}-\Delta x\|^{2}\big],
+\end{align*}
+where \DIFdelbegin \DIFdel{every term is a mean squared error , $\bar{z}$ the stop-gradient target, $P_{H}$ the Hann-tapered power spectrum , $\Delta$ the first difference, }\DIFdelend \DIFaddbegin \DIFadd{the first term is the reconstruction error, averaged over the 256 points of a window, and the
+$\lambda$ term is the prediction error, averaged over the 128 dimensions of $\mu$. The prediction is
+compared with $\bar{\mu}$, the encoder's actual posterior mean for the neighbouring window, held
+constant during the update (its gradient is stopped). Otherwise the encoder could make prediction
+trivially easy by giving every window the same $\mu$, so it learns from the prediction error only
+through the means it feeds the GRU. The reconstruction error compares the two curves point by point,
+so a smoothed reconstruction that drops a fast or periodic signal of small amplitude scores almost as
+well as a faithful one; the two terms weighted by $w$ penalise that. $\Delta$ is the difference
+between consecutive points, }\DIFaddend and \DIFaddbegin \DIFadd{$P_{H}$ is the power spectrum of the window after a Hann taper, a
+weight that rises from zero at the window's ends to one at its centre (Appendix~\ref{app:artifact}
+explains its role), taken at the 129 non-negative frequencies of a 256-point window and compared on a
+log scale. KL, the Kullback--Leibler divergence, is to $\mathcal{N}(0,I)$, averaged over windows and
+summed over the 128 dimensions. }\DIFaddend $(\beta,\lambda,w) = (0.1, 60, 0.3)$, \DIFaddbegin \DIFadd{with }\DIFaddend $\beta$ \DIFdelbegin \DIFdel{warmed up linearly
+over ten epochs}\DIFdelend \DIFaddbegin \DIFadd{raised linearly
+from zero over the first ten epochs; Appendix~\ref{app:training} writes every term out}\DIFaddend . The encoder is trained with six seeds and
+then frozen\DIFdelbegin \DIFdel{; }\DIFdelend \DIFaddbegin \DIFadd{, and }\DIFaddend no gradient from any label reaches it.
+
+\paragraph{Representations and readout.} A star's learned features are $\mu$, the mean \DIFdelbegin \DIFdel{, }\DIFdelend \DIFaddbegin \DIFadd{of the
+per-window posterior means }\DIFaddend over every window of its first \DIFdelbegin \DIFdel{segment (}\DIFdelend \DIFaddbegin \DIFadd{stored segment, the earliest one in time.
+That segment holds }\DIFaddend 16
+\DIFaddbegin \DIFadd{windows }\DIFaddend for 95\% of stars \DIFdelbegin \DIFdel{, }\DIFdelend \DIFaddbegin \DIFadd{and }\DIFaddend 20 for the rest\DIFdelbegin \DIFdel{), of the per-window posterior
+means}\DIFdelend \DIFaddbegin \DIFadd{, and averaging makes $\mu$ 128 numbers either way}\DIFaddend . The engineered baseline is a fixed 25-feature vector modelled on the \DIFaddbegin \DIFadd{variability pipeline of TESS Data for
+Asteroseismology (}\DIFaddend T'DA\DIFdelbegin \DIFdel{variability pipeline
+\mbox{%DIFAUXCMD
+\citep{audenaert2021}}\hskip0pt%DIFAUXCMD
+}\DIFdelend \DIFaddbegin \DIFadd{; \mbox{%DIFAUXCMD
+\citealt{audenaert2021}}\hskip0pt%DIFAUXCMD
+)}\DIFaddend , computed on the same first segment, 19 from its periodogram and 6 time-domain statistics; Appendix~\ref{app:features} defines each feature. \DIFdelbegin \DIFdel{Readouts are fixed in advance and never
+tuned on a task, with inputs standardised using training-split statistics alone: }\DIFdelend \DIFaddbegin \DIFadd{The readouts, and the rule that sets each one's
+penalty, were fixed before any downstream task was scored. The eight classification tasks use
+}\DIFaddend class-balanced $L_{2}$ logistic regression \DIFdelbegin \DIFdel{at }\DIFdelend \DIFaddbegin \DIFadd{with inverse penalty strength }\DIFaddend $C = 1$\DIFdelbegin \DIFdel{for the detection tasks, ridge for }\DIFdelend \DIFaddbegin \DIFadd{, and }\DIFaddend the two
+regressions \DIFdelbegin \DIFdel{with its penalty
+set }\DIFdelend \DIFaddbegin \DIFadd{use ridge, its penalty
+chosen per task }\DIFaddend by leave-one-out cross-validation \DIFdelbegin \DIFdel{. }\DIFdelend \DIFaddbegin \DIFadd{on the training split. Inputs are standardised with training-split
+statistics, and no test star enters the scaling or the penalty choice (Appendix~\ref{app:training}). }\DIFaddend We compare four
+arms, each the same readout on a different feature set\DIFdelbegin \DIFdel{: }\DIFdelend \DIFaddbegin \DIFadd{, namely }\DIFaddend \texttt{features}, $\mu$,
+\texttt{features}\,$\oplus\,\mu$ \DIFdelbegin \DIFdel{, }\DIFdelend \DIFaddbegin \DIFadd{(the fusion probe) }\DIFaddend and, as a control, the same fusion built on an
+\emph{untrained} encoder\DIFdelbegin \DIFdel{; the }\DIFdelend \DIFaddbegin \DIFadd{. The }\DIFaddend two supervised baselines below are the fifth and sixth arms.
+Appendix~\ref{app:readout} repeats the first three under XGBoost.
+
+\paragraph{Supervised baselines.} Two end-to-end baselines see exactly the same input windows, star
+sets and splits. \textbf{C1} reuses the encoder's convolutional trunk unchanged, adds a 128-unit linear layer
+and a scalar output, and is trained per task with a class-weighted loss on the mean of the star's window logits, computed
+inside the network so that the gradient flows through the mean. \textbf{C2} replaces the convolutional trunk with a
+dense one and changes nothing else, so \DIFaddbegin \DIFadd{the difference between }\DIFaddend C1 \DIFdelbegin \DIFdel{versus }\DIFdelend \DIFaddbegin \DIFadd{and }\DIFaddend C2 \DIFdelbegin \DIFdel{isolates the convolutional
+inductive bias}\DIFdelend \DIFaddbegin \DIFadd{shows what the convolutional
+layers contribute}\DIFaddend . Both
+use one regularisation setting, fixed in advance, for all tasks and select on \DIFdelbegin \DIFdel{a validation splitno
+probe has ever touched}\DIFdelend \DIFaddbegin \DIFadd{the validation split}\DIFaddend .
+
+\paragraph{Tasks and metrics.} \DIFdelbegin \DIFdel{We score ten taskswith one probe }\DIFdelend \DIFaddbegin \DIFadd{The ten tasks, one }\DIFaddend per physical quantity\DIFdelbegin \DIFdel{: pulsating
+variables \mbox{%DIFAUXCMD
+\citep{gao2025}}\hskip0pt%DIFAUXCMD
+, eclipsing binaries \mbox{%DIFAUXCMD
+\citep{prsa2022}}\hskip0pt%DIFAUXCMD
+, rotation and rotation period
+\mbox{%DIFAUXCMD
+\citep{boyle2026}}\hskip0pt%DIFAUXCMD
+, transits \mbox{%DIFAUXCMD
+\citep{guerrero2021}}\hskip0pt%DIFAUXCMD
+, flare activity \mbox{%DIFAUXCMD
+\citep{seli2025,vida2021}}\hskip0pt%DIFAUXCMD
+,
+}\DIFdelend \DIFaddbegin \DIFadd{, take their labels from
+published catalogues. Pulsating variables come from a random-forest classification of TESS periodic
+variables \mbox{%DIFAUXCMD
+\citep{gao2025}}\hskip0pt%DIFAUXCMD
+; eclipsing binaries and transit hosts from candidates vetted by eye
+\mbox{%DIFAUXCMD
+\citep{prsa2022,guerrero2021}}\hskip0pt%DIFAUXCMD
+; flare activity from a neural-network flare search vetted by eye
+\mbox{%DIFAUXCMD
+\citep{seli2025,vida2021}}\hskip0pt%DIFAUXCMD
+; rotation, and rotation periods up to 5\,d, from a periodogram survey
+\mbox{%DIFAUXCMD
+\citep{boyle2026}}\hskip0pt%DIFAUXCMD
+; and }\DIFaddend oscillating red giants \DIFdelbegin \DIFdel{and }\DIFdelend \DIFaddbegin \DIFadd{with }\DIFaddend their $\nu_{\max}$\DIFdelbegin \DIFdel{\mbox{%DIFAUXCMD
+\citep{hon2021}}\hskip0pt%DIFAUXCMD
+, }\DIFdelend \DIFaddbegin \DIFadd{, the frequency of maximum
+oscillation power, }\DIFaddend solar-like oscillators\DIFdelbegin \DIFdel{\mbox{%DIFAUXCMD
+\citep{hatt2023}}\hskip0pt%DIFAUXCMD
+, and RGB }\DIFdelend \DIFaddbegin \DIFadd{, and red-giant-branch (RGB) }\DIFaddend versus helium-burning \DIFdelbegin \DIFdel{discrimination \mbox{%DIFAUXCMD
+\citep{sreenivas2026}}\hskip0pt%DIFAUXCMD
+. Here
+$\nu_{\max}$ is the frequency of maximum oscillation power}\DIFdelend \DIFaddbegin \DIFadd{giants
+from asteroseismic catalogues \mbox{%DIFAUXCMD
+\citep{hon2021,hatt2023,sreenivas2026}}\hskip0pt%DIFAUXCMD
+. Appendix~\ref{app:pools}
+describes how each catalogue made its labels and gives the positive counts}\DIFaddend . Detection tasks are scored
+by the area under the precision--recall curve (PR-AUC), whose \DIFdelbegin \DIFdel{floor is the positive-class prevalencerather than
+$0.5$; prevalence is therefore }\DIFdelend \DIFaddbegin \DIFadd{chance level is the share of positives
+(the prevalence, }\DIFaddend quoted with every \DIFdelbegin \DIFdel{detection score}\DIFdelend \DIFaddbegin \DIFadd{score) rather than $0.5$}\DIFaddend . RGB versus helium-burning separates two
+red-giant populations rather than detecting a rare class, so it is scored by \DIFaddbegin \DIFadd{the area under the
+receiver operating characteristic curve (}\DIFaddend ROC-AUC\DIFdelbegin \DIFdel{;
+}\DIFdelend \DIFaddbegin \DIFadd{), and }\DIFaddend the two regressions \DIFdelbegin \DIFdel{are scored }\DIFdelend by $R^{2}$. \DIFaddbegin \DIFadd{All three
+metrics are unitless, and every gain or difference ($\Delta$) we quote, Figure~\ref{fig:deltas}
+included, is one task's metric in one arm minus the same metric in another.
+}\DIFaddend 
+
+\paragraph{Uncertainties.} All error bars are $2\times$ the standard error of the mean over seeds.
+For the $\mu$ arms the seeds are independent pre-training runs (six); for C1 and C2 they are
+initialisation and shuffling seeds (six); the engineered arm is
+deterministic. The $\mu$ and supervised seeds are unrelated, so differences between those arms are
+unpaired, with bands combined as $\sqrt{\mathrm{SE}_a^{2}+\mathrm{SE}_b^{2}}$. A difference counts
+only beyond its $2\,\mathrm{SE}$ band. These bands
+measure re-training spread only; a paired bootstrap over the test stars (1{,}000 resamples, seeds
+averaged; Appendix~\ref{app:bootstrap}) \DIFdelbegin \DIFdel{checks that no verdict hinges on
+the test sample}\DIFdelend \DIFaddbegin \DIFadd{measures separately how much each comparison depends on
+which stars happen to be in the test set}\DIFaddend .
+
+\section{Results}
+
+\begin{table}[t]
+\caption{Ten-task scorecard. Frozen arms: a fixed logistic or ridge readout, or XGBoost on the same
+inputs (Appendix~\ref{app:readout}). Bold: best point estimate of the three arms under each frozen
+readout, with no significance test (appendix tables bold only differences beyond $2\,\mathrm{SE}$). $n$: test stars;
+prev.: positive-class prevalence. The two rotation rows are scored \DIFdelbeginFL \DIFdelFL{on the rotation pool }\DIFdelendFL at the survey's own \DIFdelbeginFL \DIFdelFL{rotator fraction; }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{share of
+rotators, }\DIFaddendFL the other detection rows \DIFdelbeginFL \DIFdelFL{are case-control}\DIFdelendFL \DIFaddbeginFL \DIFaddFL{at the enriched shares of their pools (}\S2\DIFaddFL{)}\DIFaddendFL .}
+\label{tab:scorecard}
+\centering
+\scriptsize
+% GENERATED by experiments/plot_ml4ps_scorecard.py -- do not hand-edit
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{llrrrrrrrrr}
+\toprule
+ & & & \multicolumn{3}{c}{frozen linear readout} & \multicolumn{3}{c}{frozen XGBoost readout} & \multicolumn{2}{c}{end-to-end supervised} \\
+\cmidrule(lr){4-6}\cmidrule(lr){7-9}\cmidrule(lr){10-11}
+task & metric & $n$ (prev.) & features & $\mu$ & features\,$\oplus$\,$\mu$ & features & $\mu$ & features\,$\oplus$\,$\mu$ & Conv1D & MLP \\
+\midrule
+pulsating & PR-AUC & 2021 (0.107) & 0.789 & 0.806 & \textbf{0.846} & \textbf{0.845} & 0.821 & 0.834 & 0.816 & 0.748 \\
+eclipsing binary & PR-AUC & 2021 (0.097) & 0.742 & 0.771 & \textbf{0.775} & 0.798 & 0.789 & \textbf{0.807} & 0.774 & 0.719 \\
+rotation & PR-AUC & 15944 (0.130) & 0.386 & 0.373 & \textbf{0.441} & \textbf{0.518} & 0.436 & 0.515 & 0.409 & 0.420 \\
+transit & PR-AUC & 2021 (0.060) & 0.190 & 0.144 & \textbf{0.218} & 0.217 & 0.223 & \textbf{0.228} & 0.134 & 0.109 \\
+oscillating giant & PR-AUC & 3429 (0.383) & \textbf{0.920} & 0.854 & 0.918 & \textbf{0.924} & 0.899 & 0.923 & 0.875 & 0.883 \\
+solar-like osc. & PR-AUC & 3429 (0.122) & 0.320 & 0.336 & \textbf{0.390} & \textbf{0.470} & 0.409 & 0.463 & 0.396 & 0.275 \\
+RGB vs. HeB & ROC-AUC & 161 (0.702) & \textbf{0.758} & 0.660 & 0.708 & 0.746 & 0.725 & \textbf{0.763} & 0.530 & 0.762 \\
+$\nu_{\max}$ & $R^2$ & 1313 & 0.831 & 0.802 & \textbf{0.867} & 0.916 & 0.831 & \textbf{0.919} & 0.832 & 0.834 \\
+rotation period & $R^2$ & 1318 & 0.718 & 0.636 & \textbf{0.752} & \textbf{0.829} & 0.729 & 0.825 & 0.697 & 0.773 \\
+flare activity & PR-AUC & 3429 (0.089) & 0.474 & 0.453 & \textbf{0.524} & 0.562 & 0.485 & \textbf{0.565} & 0.533 & 0.444 \\
+\bottomrule
+\end{tabular}
+
+\end{table}
+
+\begin{figure}[t]
+\centering
+\DIFdelbeginFL \DIFdelFL{\includegraphics[width=\linewidth]{figures/v1_fig1_deltas_xgb.pdf}
+}\DIFdelendFL \DIFaddbeginFL \DIFaddFL{\includegraphics[width=\linewidth]{figures/fig1_deltas_xgb.pdf}
+}\DIFaddendFL \caption{The two claims. \textbf{(a)} What the learned features add to the engineered features, under
+the fixed linear readout of Table~\ref{tab:scorecard} (solid) and under an XGBoost readout on the
+same inputs (faded; Appendix~\ref{app:readout}). \textbf{(b)} The fusion probe against the two
+supervised baselines. Bars are $2\,\mathrm{SE}$.}
+\label{fig:deltas}
+\end{figure}
+
+\paragraph{\DIFdelbegin \DIFdel{The learned features add to }\DIFdelend \DIFaddbegin \DIFadd{Gain over }\DIFaddend the engineered features.} Adding $\mu$ to the 25 features
+improves the fixed readout (Table~\ref{tab:scorecard}, Figure~\ref{fig:deltas}a) beyond $2\,\mathrm{SE}$ on 7 of 10 tasks, led by solar-like oscillators $+0.071$,
+pulsating $+0.057$ and flare activity $+0.051$, and reaching $+0.034$ ($R^{2}$) on rotation period.
+\DIFdelbegin \DIFdel{Rotation clears the bar too (}\DIFdelend \DIFaddbegin \DIFadd{The claim is confined to this linear readout, since under XGBoost the same comparison is won on 3
+tasks, tied on 5 and lost on 2 (Appendix~\ref{app:readout}, Table~\ref{tab:readout}). Rotation also
+improves beyond $2\,\mathrm{SE}$ (}\DIFaddend $+0.055 \pm 0.006$)\DIFdelbegin \DIFdel{but does not count : }\DIFdelend \DIFaddbegin \DIFadd{, but we do not count it, because }\DIFaddend an untrained
+encoder gains about half as much there ($+0.027 \pm 0.003$ over six random initialisations)\DIFdelbegin \DIFdel{, and a }\DIFdelend \DIFaddbegin \DIFadd{. A }\DIFaddend gain
+counts only if the untrained control's gain stays within $2\,\mathrm{SE}$ of zero, a rule fixed before
+the rotation tasks were scored (Appendix~\ref{app:rotpool}). \DIFdelbegin \DIFdel{The }\DIFdelend \DIFaddbegin \DIFadd{On the }\DIFaddend two negative tasks \DIFdelbegin \DIFdel{are those where }\DIFdelend \DIFaddbegin \DIFadd{the }\DIFaddend 128 extra
+columns cost more than they add\DIFdelbegin \DIFdel{: }\DIFdelend \DIFaddbegin \DIFadd{, either because }\DIFaddend the 25 features already cover the task (oscillating
+giants, $-0.003$ on a baseline of $0.920$) or \DIFaddbegin \DIFadd{because }\DIFaddend the training set is too small to fit 128 more
+weights (RGB versus helium-burning, $-0.050$ on 755 training stars\DIFaddbegin \DIFadd{; its 161 test stars are the fewest
+of any task and give the widest band}\DIFaddend ). On both, an untrained encoder loses about as much, within the
+error band, so redundant columns, not misleading content in $\mu$, cause the loss
+(Appendix~\ref{app:negatives}). On the \DIFdelbegin \DIFdel{other nine tasks }\DIFdelend \DIFaddbegin \DIFadd{nine tasks other than rotation }\DIFaddend the untrained control never
+exceeds $+0.016$ and is negative on six
+(\DIFaddbegin \DIFadd{Appendix~\ref{app:readout}, }\DIFaddend Table~\ref{tab:readout}); outside the two rotation tasks it is one random encoder, with no error
+band. So the gains that count come from
+pre-training, not from 128 extra columns. $\mu$ on its own does not
+replace the features (ahead on 3 of 10 alone), as \citet{li2025staremb} find for
+foundation models; we therefore report fusion rather than substitution \citep{makinen2024}.
+
+\paragraph{\DIFdelbegin \DIFdel{The fusion probe outperforms }\DIFdelend \DIFaddbegin \DIFadd{Comparison with }\DIFaddend the \DIFdelbegin \DIFdel{two }\DIFdelend supervised \DIFdelbegin \DIFdel{networks on most tasks}\DIFdelend \DIFaddbegin \DIFadd{baselines}\DIFaddend .} Against C1, which shares
+the convolutional trunk, labels and input windows but is trained end-to-end, the fusion
+probe is ahead on 7 of 10 tasks and indistinguishable on the other 3
+(Figure~\ref{fig:deltas}b). Against
+C2, an MLP on raw flux, it is ahead on 8 of 10 and behind on two (RGB versus helium-burning and
+rotation period). C1 is not \DIFdelbegin \DIFdel{weak: }\DIFdelend \DIFaddbegin \DIFadd{a weak baseline, since }\DIFaddend it beats the engineered arm on 5 of 10.
+\DIFaddbegin \DIFadd{These counts use the $2\,\mathrm{SE}$ seed band. }\DIFaddend A paired star-bootstrap
+(Appendix~\ref{app:bootstrap})\DIFdelbegin \DIFdel{excludes zero on }\DIFdelend \DIFaddbegin \DIFadd{, which resamples the test stars instead, keeps an interval excluding
+zero for }\DIFaddend 6 of the 7 fusion gains that count \DIFaddbegin \DIFadd{(all but transit)}\DIFaddend , 6 of the 7 leads over C1 \DIFaddbegin \DIFadd{(all but
+pulsating) }\DIFaddend and all 8 \DIFaddbegin \DIFadd{leads }\DIFaddend over C2. \DIFdelbegin \DIFdel{This holds for this architecture }\DIFdelend \DIFaddbegin \DIFadd{The comparison holds for these two architectures, trained }\DIFaddend on 755
+to 74{,}398 labelled stars per task, not for \DIFdelbegin \DIFdel{supervision }\DIFdelend \DIFaddbegin \DIFadd{supervised learning }\DIFaddend in general.
+
+\paragraph{\DIFdelbegin \DIFdel{The GRU }\DIFdelend \DIFaddbegin \DIFadd{Ablation of the }\DIFaddend prediction term\DIFdelbegin \DIFdel{raises the gain on every task}\DIFdelend .} Retraining without \DIFdelbegin \DIFdel{it}\DIFdelend \DIFaddbegin \DIFadd{the GRU prediction term}\DIFaddend ,
+all else unchanged, lowers the fusion gain on all 10 tasks, by more than $2\,\mathrm{SE}$ on 6 when
+compared seed by seed (\DIFaddbegin \DIFadd{Appendix~\ref{app:readout}, }\DIFaddend Table~\ref{tab:readout}).
+
+\section{Discussion}
+
+\paragraph{\DIFdelbegin \DIFdel{Pick the encoder by a held-out probe, not by its loss}\DIFdelend \DIFaddbegin \DIFadd{Model selection}\DIFaddend .} \DIFdelbegin \DIFdel{We trained 29 variants of
+the }\DIFdelend \DIFaddbegin \DIFadd{The }\DIFaddend pre-training \DIFdelbegin \DIFdel{recipe that differ in their loss terms , and
+scored each on the }\DIFdelend \DIFaddbegin \DIFadd{loss never sees a label, but the choice of recipe did.
+A recipe is one version of the training objective of }\S2\DIFadd{, differing in which loss terms it uses and
+how they are weighted. We trained 29 recipes and chose among them by readout scores on the first
+pool's }\DIFaddend three detection tasks \DIFdelbegin \DIFdel{of the first star pool, the tasks we developed the recipe on (Appendix~\ref{app:valloss} )}\DIFdelend \DIFaddbegin \DIFadd{and its rotation labels, and by a criterion on reconstruction artifacts
+(Appendices~\ref{app:valloss} and~\ref{app:artifact}). No other task played a part}\DIFaddend .
+\DIFdelbegin \DIFdel{On none of the three did the variant with the lowest validation reconstruction loss score best; choosing it would have cost $0.011$--$0.031$
+PR-AUC.
+}\DIFdelend 
+
+\paragraph{\textbf{Limitations and next steps.}} \emph{Readout.} The four linear arms share one small linear model, which
+cannot rescue weak features, so the comparison is between feature sets. \DIFdelbegin \DIFdel{Our claim is confined to
+these 25 features and a linear readout: under }\DIFdelend \DIFaddbegin \DIFadd{Under }\DIFaddend XGBoost the gain
+\DIFdelbegin \DIFdel{exceeds $2\,\mathrm{SE}$ on 3 of 10
+tasks and is negative on two, and it }\DIFdelend shrinks most where XGBoost improves most on the \DIFaddbegin \DIFadd{25 }\DIFaddend features alone (Spearman $0.87$ \DIFaddbegin \DIFadd{across the ten tasks}\DIFaddend ;
+Appendix~\ref{app:readout}). \emph{Data.} Every arm, the supervised baselines
+included, sees one 5.7\DIFaddbegin \DIFadd{- or 7.1}\DIFaddend -day segment of a bright 2-minute star; fainter full-frame-image stars and
+multi-sector light curves come next. \DIFaddbegin \emph{\DIFadd{Pre-training pool.}} \DIFadd{The encoder was pre-trained on a pool
+enriched in transit hosts, eclipsing binaries and pulsators rather than on all stars, and whether a
+random pool of the same size would give the same gains is untested. }\DIFaddend \emph{Labels.} Our
+negatives are stars absent from the catalogues, not stars verified to lack the signal, so
+catalogue incompleteness adds positive-unlabelled label noise, and detection scores may be
+conservative. The flare label marks stars that flared anywhere in their TESS data, so the task is
+recognising a flaring star, not finding a flare in the encoded segment. \emph{Label scarcity.} With
+the readout trained on a few percent of the labels, the advantage narrows on 7 of 10 tasks, so how
+much pre-training helps when labels are scarce remains open. \emph{Reconstruction.} The decoder
+plants a narrow spike near the centre of each window; every loss change we tried that removed it
+also hurt some \DIFdelbegin \DIFdel{probe }\DIFdelend \DIFaddbegin \DIFadd{task }\DIFaddend scores (Appendix~\ref{app:artifact}). \emph{Discovery.} Every task here has a
+catalogue to score against; whether $\mu$ also groups stars into kinds of variability no
+catalogue lists yet is untested and needs a different evaluation.
+
+\paragraph{Reproducibility and disclosure.} \S2 and Appendices~\ref{app:training}
+and~\ref{app:features} give the full recipe; code, configuration files and every score table are at
+\url{https://github.com/BrightonLiu-zZ/stellar-ssl/tree/arxiv-v1}. Generative AI assisted with
+analysis code and prose editing.
+
+\raggedbottom
+\bibliographystyle{plainnat}
+\begin{thebibliography}{22}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Audenaert et~al.(2021)Audenaert, Kuszlewicz, Handberg,
+  et~al.]{audenaert2021}
+Jeroen Audenaert, James~S. Kuszlewicz, Rasmus Handberg, et~al.
+\newblock {TESS} data for asteroseismology ({T'DA}) stellar variability
+  classification pipeline: Set-up and application to the {Kepler} {Q9} data.
+\newblock \emph{The Astronomical Journal}, 162\penalty0 (5):\penalty0 209,
+  2021.
+\newblock arXiv:2107.06301.
+
+\bibitem[Bedding et~al.(2011)Bedding, Mosser, Huber, et~al.]{bedding2011}
+Timothy~R. Bedding, Benoit Mosser, Daniel Huber, et~al.
+\newblock Gravity modes as a way to distinguish between hydrogen- and
+  helium-burning red giant stars.
+\newblock \emph{Nature}, 471:\penalty0 608, 2011.
+\newblock arXiv:1103.5805.
+
+\bibitem[Boyle et~al.(2026)Boyle, Bouma, and Mann]{boyle2026}
+Andrew~W. Boyle, Luke~G. Bouma, and Andrew~W. Mann.
+\newblock The {TESS} all-sky rotation survey: Periods for 1,046,317 stars
+  within 500 pc.
+\newblock \emph{\DIFdelbegin \DIFdel{arXiv e-prints}\DIFdelend \DIFaddbegin \DIFadd{The Astrophysical Journal Supplement Series}\DIFaddend }, \DIFaddbegin \DIFadd{284}\penalty0
+  \DIFadd{(2):}\penalty0 \DIFadd{75, }\DIFaddend 2026.
+\newblock arXiv:2603.05586.
+
+\bibitem[Cho et~al.(2014)Cho, van Merri\"{e}nboer, Gulcehre, et~al.]{cho2014}
+Kyunghyun Cho, Bart van Merri\"{e}nboer, Caglar Gulcehre, et~al.
+\newblock Learning phrase representations using {RNN} encoder--decoder for
+  statistical machine translation.
+\newblock In \emph{Conference on Empirical Methods in Natural Language
+  Processing}, 2014.
+\newblock arXiv:1406.1078.
+
+\DIFdelbegin \bibitem[Donoso-Oliva et~al.(2025)Donoso-Oliva, Becker, Protopapas,
+  et~al.]{donoso2025astromer2}
+\DIFdelend \DIFaddbegin \bibitem[Donoso-Oliva et~al.(2026)Donoso-Oliva, Becker, Protopapas,
+  et~al.]{donoso2025astromer2}
+\DIFaddend Cristobal Donoso-Oliva, Ignacio Becker, Pavlos Protopapas, et~al.
+\newblock \DIFaddbegin \DIFadd{Generalizing across astronomical surveys: Few-shot light curve
+  classification with }\DIFaddend {Astromer} 2.
+\newblock \emph{\DIFdelbegin \DIFdel{arXiv e-prints}\DIFdelend \DIFaddbegin \DIFadd{Astronomy \& Astrophysics}\DIFaddend }, \DIFdelbegin \DIFdel{2025.
+}\DIFdelend \DIFaddbegin \DIFadd{707:}\penalty0 \DIFadd{A170, 2026.
+}\DIFaddend \newblock arXiv:2502.02717.
+
+\bibitem[Gao et~al.(2025)Gao, Chen, Wang, and Liu]{gao2025}
+Xinyi Gao, Xiaodian Chen, Shu Wang, and Jifeng Liu.
+\newblock Classification of periodic variable stars from {TESS}.
+\newblock \emph{The Astrophysical Journal Supplement Series}, 276\penalty0
+  (2):\penalty0 57, 2025.
+\newblock arXiv:2412.06175.
+
+\bibitem[Guerrero et~al.(2021)Guerrero, Seager, Huang, et~al.]{guerrero2021}
+Natalia~M. Guerrero, Sara Seager, Chelsea~X. Huang, et~al.
+\newblock The {TESS} objects of interest catalog from the {TESS} prime mission.
+\newblock \emph{The Astrophysical Journal Supplement Series}, 254\penalty0
+  (2):\penalty0 39, 2021.
+\newblock arXiv:2103.12538.
+
+\bibitem[Hatt et~al.(2023)Hatt, Nielsen, Chaplin, et~al.]{hatt2023}
+Emily Hatt, Martin~B. Nielsen, William~J. Chaplin, et~al.
+\newblock A catalogue of solar-like oscillators observed by {TESS} in
+  120-second and 20-second cadence.
+\newblock \emph{Astronomy \& Astrophysics}, 669:\penalty0 A67, 2023.
+\newblock arXiv:2210.09109.
+
+\bibitem[Hon et~al.(2021)Hon, Huber, Kuszlewicz, et~al.]{hon2021}
+Marc Hon, Daniel Huber, James~S. Kuszlewicz, et~al.
+\newblock A `quick look' at all-sky galactic archeology with {TESS}: 158,000
+  oscillating red giants from the {MIT} quick-look pipeline.
+\newblock \emph{The Astrophysical Journal}, 919\penalty0 (2):\penalty0 131,
+  2021.
+\newblock arXiv:2108.01241.
+
+\bibitem[Huber et~al.(2022)Huber, White, Metcalfe, et~al.]{huber2022}
+Daniel Huber, Timothy~R. White, Travis~S. Metcalfe, et~al.
+\newblock A 20-second cadence view of solar-type stars and their planets with
+  {TESS}: Asteroseismology of solar analogs and a re-characterization of pi
+  {Men} c.
+\newblock \emph{The Astronomical Journal}, 163\penalty0 (2):\penalty0 79, 2022.
+\newblock arXiv:2108.09109.
+
+\bibitem[Ivezi\'{c} et~al.(2019)Ivezi\'{c}, Kahn, Tyson, et~al.]{ivezic2019}
+\v{Z}eljko Ivezi\'{c}, Steven~M. Kahn, J.~Anthony Tyson, et~al.
+\newblock {LSST}: From science drivers to reference design and anticipated data
+  products.
+\newblock \emph{The Astrophysical Journal}, 873\penalty0 (2):\penalty0 111,
+  2019.
+\newblock arXiv:0805.2366.
+
+\bibitem[Kingma and Welling(2014)]{kingma2014}
+Diederik~P. Kingma and Max Welling.
+\newblock Auto-encoding variational bayes.
+\newblock In \emph{International Conference on Learning Representations}, 2014.
+\newblock arXiv:1312.6114.
+
+\DIFdelbegin \bibitem[Li et~al.(2025)Li, Chen, Rehemtulla, et~al.]{li2025staremb}
+\DIFdelend \DIFaddbegin \bibitem[Li et~al.(2026)Li, Chen, Rehemtulla, et~al.]{li2025staremb}
+\DIFaddend Weijian Li, Hong-Yu Chen, Nabeel Rehemtulla, et~al.
+\newblock {StarEmbed}: Benchmarking time series foundation models on
+  astronomical observations of variable stars.
+\newblock \DIFaddbegin \DIFadd{In }\DIFaddend \emph{\DIFdelbegin \DIFdel{arXiv e-prints}\DIFdelend \DIFaddbegin \DIFadd{Proceedings of the 43rd International Conference on Machine
+  Learning}\DIFaddend }, \DIFdelbegin \DIFdel{2025.
+}\DIFdelend \DIFaddbegin \DIFadd{volume 306 of }\emph{\DIFadd{Proceedings of Machine Learning Research}}\DIFadd{,
+  pages 66289--66329, 2026.
+}\DIFaddend \newblock arXiv:2510.06200.
+
+\bibitem[Makinen et~al.(2024)Makinen, Sui, Wandelt, et~al.]{makinen2024}
+T.~Lucas Makinen, Ce~Sui, Benjamin~D. Wandelt, et~al.
+\newblock Hybrid summary statistics.
+\newblock \emph{arXiv e-prints}, 2024.
+\newblock arXiv:2410.07548.
+
+\DIFdelbegin \bibitem[Poznanski(2026)]{poznanski2026}
+\DIFdelend \DIFaddbegin \bibitem[Poznanski(2027)]{poznanski2026}
+\DIFaddend Dovi Poznanski.
+\newblock A useful representation of {TESS} light curves.
+\newblock \emph{\DIFdelbegin \DIFdel{arXiv e-prints}\DIFdelend \DIFaddbegin \DIFadd{Astronomy and Computing}\DIFaddend }, \DIFdelbegin \DIFdel{2026.
+}\DIFdelend \DIFaddbegin \DIFadd{58:}\penalty0 \DIFadd{101196, 2027.
+}\DIFaddend \newblock arXiv:2605.05324.
+
+\bibitem[Pr\v{s}a et~al.(2022)Pr\v{s}a, Kochoska, Conroy, et~al.]{prsa2022}
+Andrej Pr\v{s}a, Angela Kochoska, Kyle~E. Conroy, et~al.
+\newblock {TESS} eclipsing binary stars. {I}. short-cadence observations of
+  4584 eclipsing binaries in sectors 1--26.
+\newblock \emph{The Astrophysical Journal Supplement Series}, 258\penalty0
+  (1):\penalty0 16, 2022.
+\newblock arXiv:2110.13382.
+
+\bibitem[Ricker et~al.(2015)Ricker, Winn, Vanderspek, et~al.]{ricker2015}
+George~R. Ricker, Joshua~N. Winn, Roland Vanderspek, et~al.
+\newblock The transiting exoplanet survey satellite.
+\newblock \emph{Journal of Astronomical Telescopes, Instruments, and Systems},
+  1\penalty0 (1):\penalty0 014003, 2015.
+\newblock arXiv:1406.0151.
+
+\bibitem[Rui(2026)]{rui2026jepa}
+Yicheng Rui.
+\newblock Domain-informed multi-view self-distillation for astronomical
+  light-curve representation learning with {JEPA}.
+\newblock \emph{arXiv e-prints}, 2026.
+\newblock arXiv:2606.28446.
+
+\bibitem[Seli et~al.(2025)Seli, Vida, Ol\'{a}h, et~al.]{seli2025}
+B\'{a}lint Seli, Kriszti\'{a}n Vida, Katalin Ol\'{a}h, et~al.
+\newblock Stellar flare morphology with {TESS} across the main sequence.
+\newblock \emph{Astronomy \& Astrophysics}, 694:\penalty0 A161, 2025.
+\newblock arXiv:2412.12989.
+
+\bibitem[Sreenivas et~al.(2026)]{sreenivas2026}
+K.~R. Sreenivas et~al.
+\newblock Global asteroseismology of 19,000 red giants in the {TESS} continuous
+  viewing zones.
+\newblock \emph{\DIFdelbegin \DIFdel{arXiv e-prints}\DIFdelend \DIFaddbegin \DIFadd{Monthly Notices of the Royal Astronomical Society}\DIFaddend },
+  \DIFaddbegin \DIFadd{548}\penalty0 \DIFadd{(2):}\penalty0 \DIFadd{stag671, }\DIFaddend 2026.
+\newblock arXiv:2604.00498.
+
+\bibitem[Vida et~al.(2021)Vida, B\'{o}di, Szkl\'{e}n\'{a}r, and Seli]{vida2021}
+Kriszti\'{a}n Vida, Attila B\'{o}di, Tam\'{a}s Szkl\'{e}n\'{a}r, and B\'{a}lint
+  Seli.
+\newblock Finding flares in {Kepler} and {TESS} data with recurrent deep neural
+  networks.
+\newblock \emph{Astronomy \& Astrophysics}, 652:\penalty0 A107, 2021.
+\newblock arXiv:2105.11485.
+
+\DIFdelbegin \bibitem[Zuo et~al.(2025)Zuo, Tao, Huang, et~al.]{zuo2025falco}
+\DIFdelend \DIFaddbegin \bibitem[Zuo et~al.(2026)Zuo, Tao, Huang, et~al.]{zuo2025falco}
+\DIFaddend Xiaoxiong Zuo, Yihan Tao, Yang Huang, et~al.
+\newblock {FALCO}: \DIFdelbegin \DIFdel{A foundation }\DIFdelend \DIFaddbegin \DIFadd{Foundation }\DIFaddend model of astronomical light curves for \DIFdelbegin \DIFdel{time-domain astronomy. }\DIFdelend \DIFaddbegin \DIFadd{time
+  domain astronomy. }{\DIFadd{Implementation}} \DIFadd{and applications on }{\DIFadd{Kepler}} \DIFadd{data.
+}\DIFaddend \newblock \emph{\DIFdelbegin \DIFdel{arXiv e-prints}\DIFdelend \DIFaddbegin \DIFadd{The Astronomical Journal}\DIFaddend }, \DIFdelbegin \DIFdel{2025.
+}\DIFdelend \DIFaddbegin \DIFadd{171}\penalty0 \DIFadd{(1):}\penalty0 \DIFadd{10, 2026.
+}\DIFaddend \newblock arXiv:2504.20290.
+
+\end{thebibliography}
+
+
+\appendix
+
+\section{The \DIFaddbegin \DIFadd{ten tasks, the }\DIFaddend two star pools, and what a quiet star is}
+\label{app:pools}
+
+\DIFaddbegin \begin{table}[H]
+\caption{\DIFaddFL{The ten tasks. Method: how the catalogue itself produced the label, as its paper describes
+it. Pool 1 and pool 2 are defined below; pool 3 is the rotation pool (Appendix~\ref{app:rotpool}).
+Last column: positives in the test split / test stars (for RGB versus helium-burning, RGB stars; the
+regressions have no positive class).}}
+\label{tab:tasks}
+\centering
+\scriptsize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{>{\raggedright\arraybackslash}p{0.12\linewidth}>{\raggedright\arraybackslash}p{0.12\linewidth}>{\raggedright\arraybackslash}p{0.5\linewidth}cr}
+\toprule
+task & catalogue & method & pool & test \\
+\midrule
+pulsating & \citet{gao2025} & random forest on Lomb--Scargle-selected periodic variables in TESS
+2-min light curves, with light-curve, Gaia and WISE inputs, trained on 2{,}405 stars classified by
+earlier catalogues; positives are its $\delta$~Scuti, high-amplitude $\delta$~Scuti, RR~Lyrae and
+Cepheid classes & 1 & 216 / 2{,}021 \\
+eclipsing binary & \citet{prsa2022} & candidates from citizen-science, visual and automated searches
+of 2-min Sector 1--26 light curves, each vetted by eye by the authors & 1 & 196 / 2{,}021 \\
+transit & \citet{guerrero2021} & transit searches of SPOC and QLP light curves, automated triage and
+visual vetting; positives have a TFOP Working Group disposition of confirmed (CP), known (KP) or
+candidate planet (PC, APC) & 1 & 122 / 2{,}021 \\
+oscillating giant & \citet{hon2021} & convolutional classifier reading a $128 \times 128$ image of
+the power spectrum of each star's 30-min full-frame-image light curve; we keep
+$\nu_{\max} > 10\,\mu$Hz & 2 & 1{,}313 / 3{,}429 \\
+$\nu_{\max}$ & \citet{hon2021} & a second network regressing $\nu_{\max}$ from the same image & 2 &
+1{,}313 \\
+solar-like osc. & \citet{hatt2023} & power-excess and large-separation tests on SPOC 120-s or 20-s
+light curves, every detection vetted by eye; we keep $\nu_{\max} > 10\,\mu$Hz & 2 & 417 / 3{,}429 \\
+RGB vs.\ He-burning & \citet{sreenivas2026} & convolutional classifier reading the folded,
+background-corrected power spectrum (Appendix~\ref{app:negatives}); we drop the stars it calls
+ambiguous & 2 & 113 / 161 \\
+flare activity & \citet{seli2025} & recurrent network \citep{vida2021} retrained on TESS 2-min data,
+run only on light curves passing a variability cut, every flare vetted by eye; positives have at least
+one flare & 2 & 304 / 3{,}429 \\
+rotation & \citet{boyle2026} & Lomb--Scargle periods of full-frame-image light curves, screened for
+systematics and harmonics by two random forests; positives are listed with a period, of which the
+authors estimate 93\% are rotation periods & 3 & 2{,}069 / 15{,}944 \\
+rotation period & \citet{boyle2026} & the same periods, kept at most 5\,d & 3 & 1{,}318 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\DIFaddend Each task is scored on the pool its catalogue populates, and every arm on a task sees the identical
+star list, so the two definitions below fix the population but never a comparison.
+
+\paragraph{The first pool (13{,}470 stars).} Every star in the corpus with at least one \DIFdelbegin \DIFdel{usable window
+}\DIFdelend \DIFaddbegin \DIFadd{stored segment (Appendix~\ref{app:training})
+}\DIFaddend that carries a transit, eclipsing-binary or pulsating label: 3{,}470 stars, assigned to a single
+split stratum rarest class first (813 transit, 1{,}226 eclipsing binary, 1{,}431 pulsating). To them
+are added 10{,}000 \emph{quiet} stars drawn uniformly at random, without replacement, from the corpus
+stars that appear in none of our five v1 catalogues -- transit, eclipsing binary, pulsating, rotation
+and flare. The whole pool is split 70/15/15 by star \DIFaddbegin \DIFadd{into training, validation and test
+sets }\DIFaddend within each stratum, and the encoder is
+pre-trained and monitored on this pool's training and validation splits.
+
+Rotation and flare appear here only as exclusions on the quiet draw, so the rotation tasks are scored
+on a pool of their own (Appendix~\ref{app:rotpool}).
+
+\paragraph{The second pool (22{,}860 stars).} The four external catalogues behind the asteroseismic
+and rotation-period tasks are joined to the corpus into one table of 11{,}007 stars, each row a star
+that at least one of them covers. Those 11{,}007, plus the 1{,}853 flare-labelled corpus stars not
+already among them, are the pool's members (12{,}860). To them are added a fresh draw of 10{,}000
+quiet stars: corpus stars that carry no transit, eclipsing-binary, pulsating or rotation label, have
+no flare label, and are absent from the external table. The split is again 70/15/15 by star, with the
+stratum taken rarest first over RGB-versus-helium-burning, Kounkel rotation period, flare, solar-like
+oscillator, oscillating giant and quiet.
+
+\paragraph{The two screens are not symmetric.} The first pool's quiet draw is screened against the
+five v1 catalogues only; it never consults the four external ones, so some of its quiet stars are
+oscillating red giants or solar-like oscillators. The second pool's quiet draw is screened against
+both sets. Nothing printed here compares a star in one pool with a star in the other, so the
+asymmetry \DIFdelbegin \DIFdel{costs no verdict}\DIFdelend \DIFaddbegin \DIFadd{changes no comparison}\DIFaddend ; what it does mean is that a negative in either pool is a star
+\emph{absent from the relevant catalogues}, not a star examined and found to lack the signal. The
+external table is itself a union of four detection lists, so a star it covers with a zero for
+oscillating giants is a star Hatt, Sreenivas or Kounkel listed and \citet{hon2021} did not, which is
+the same kind of negative. This is the label limitation \S4 states, given exactly.
+
+\section{The rotation pool}
+\label{app:rotpool}
+
+\paragraph{Construction.} Every corpus star with at least one \DIFdelbegin \DIFdel{usable window }\DIFdelend \DIFaddbegin \DIFadd{stored segment }\DIFaddend that is not in the
+first pool: 106{,}284 stars, of which 13{,}789 carry a rotation period in the TESS All-Sky Rotation
+Survey \citep{boyle2026} and 92{,}495 do not. By construction the pool contains no transit host,
+eclipsing binary or pulsator (the first pool took every one), no star that entered pre-training, and
+no sampling step: rotators are 13.0\% of it, against 12.5\% of the corpus, so both rotation tasks are
+scored at the survey's own prevalence rather than the case-control prevalence of the other pools. It
+is split 70/15/15 by star, stratified on rotators with period at most five days (8{,}786), other
+rotators (5{,}003) and non-rotators, seed 0. The rotation-period task keeps the rotators with period
+at most five days. A non-rotator here is a star the survey does not list, not a star examined and
+found not to rotate. No encoder is run again: the per-star encoder outputs and the 25 engineered
+features for these stars had been cached for an earlier survey-prevalence rescore, and the readouts
+are the body's, fitted on this pool's training split. The design, the arms, the readouts and the rule
+for reading the result were fixed in writing before any score on this pool was computed.
+
+Two properties still differ between the classes besides rotation, both astrophysical rather than
+sampling artefacts: 10.4\% of the rotators and 0.5\% of the non-rotators carry a flare label, and
+0.3\% of the rotators against 9.4\% of the non-rotators are oscillating giants or solar-like
+oscillators. The headline rows keep every star, because a survey contains them; two sensitivity rows
+refit the readout with flare stars removed from both classes, and with the positives restricted to
+stars in no non-rotation catalogue and the negatives to stars in no catalogue at all.
+
+\paragraph{The counting rule.} A gain on these two tasks counts only if (i) it exceeds
+$2\,\mathrm{SE}$, (ii) the untrained control's own gain stays within $2\,\mathrm{SE}$ of zero, and
+(iii) the trained-minus-untrained difference, paired seed $s$ with initialisation $s$, exceeds
+$2\,\mathrm{SE}$. Clause (ii) needs the untrained encoder's spread, so six random initialisations
+were scored here; Table~\ref{tab:scorecard} prints the first of them, the same initialisation as
+every other task's untrained arm.
+
+\paragraph{Result.} Table~\ref{tab:rotpool} gives both tasks with the two sensitivity rows. On
+rotation the fusion gain is $+0.055 \pm 0.006$ and the trained encoder is ahead of the untrained one
+by $+0.029 \pm 0.008$, but the untrained encoder itself gains $+0.027 \pm 0.003$ over its six
+initialisations: with 74{,}398 training stars, 128 random columns are no longer redundant to a linear
+fit. Clause (ii) fails, so rotation does not count. On rotation period the gain is $+0.034 \pm 0.002$
+on 1{,}318 test stars, the untrained control is at $-0.003$ and the paired difference is
+$+0.037 \pm 0.003$, so it counts. The two sensitivity rows \DIFdelbegin \DIFdel{agree with the headline on both verdicts}\DIFdelend \DIFaddbegin \DIFadd{reach the same conclusion on both tasks}\DIFaddend .
+The dynamics-off contrast is positive on both tasks ($+0.019 \pm 0.007$ and $+0.020 \pm 0.003$), and
+a paired star-bootstrap of every contrast in the table (1{,}000 resamples, as in
+Appendix~\ref{app:bootstrap}) agrees with every \DIFdelbegin \DIFdel{seed-band verdict}\DIFdelend \DIFaddbegin \DIFadd{conclusion drawn from the seed band}\DIFaddend .
+
+\begin{table}[H]
+\caption{The two rotation tasks on the rotation pool. The ``all stars'' rows are those of
+Table~\ref{tab:scorecard}; linear and XGBoost readouts and the two supervised baselines are as there.
+Gain = features\,$\oplus\,\mu$ minus features, mean over six encoder seeds, bold beyond
+$2\,\mathrm{SE}$; untrained gain = the same with the untrained encoder. Sensitivity rows refit the
+linear readout on the restricted population. $n$: test stars; prev.: rotator prevalence.}
+\label{tab:rotpool}
+\centering
+\scriptsize
+% GENERATED by experiments/plot_rotation_pool_appendix.py -- do not hand-edit
+\setlength{\tabcolsep}{2.5pt}
+\begin{tabular}{llrrrrrrrrrr}
+\toprule
+ & & & \multicolumn{5}{c}{linear readout} & \multicolumn{2}{c}{XGBoost} & \multicolumn{2}{c}{supervised} \\
+\cmidrule(lr){4-8}\cmidrule(lr){9-10}\cmidrule(lr){11-12}
+task & population & $n$ (prev.) & features & $\mu$ & fusion & gain & untr.\ gain & features & fusion & Conv1D & MLP \\
+\midrule
+rotation (PR-AUC) & all stars & 15944 (0.130) & 0.386 & 0.373 & 0.441 & $\mathbf{+0.055}$ & $+0.029$ & 0.518 & 0.515 & 0.409 & 0.420 \\
+ & \quad no flare stars & 15670 (0.119) & 0.356 & 0.352 & 0.413 & $\mathbf{+0.057}$ & $+0.029$ & -- & -- & -- & -- \\
+ & \quad strict & 14182 (0.129) & 0.367 & 0.372 & 0.427 & $\mathbf{+0.061}$ & $+0.036$ & -- & -- & -- & -- \\
+\midrule
+rotation period ($R^2$) & all stars & 1318 & 0.718 & 0.636 & 0.752 & $\mathbf{+0.034}$ & $-0.003$ & 0.829 & 0.825 & 0.697 & 0.773 \\
+ & \quad no flare stars & 1174 & 0.713 & 0.628 & 0.744 & $\mathbf{+0.031}$ & $-0.006$ & -- & -- & -- & -- \\
+ & \quad strict & 1145 & 0.718 & 0.636 & 0.748 & $\mathbf{+0.031}$ & $-0.004$ & -- & -- & -- & -- \\
+\bottomrule
+\end{tabular}
+
+\end{table}
+
+\section{Evaluation restricted to stars never seen in pre-training}
+\label{app:unseen}
+
+The encoder is fitted on the training stars of the first pool and monitored on its validation stars,
+so the test stars of
+the three tasks scored on that pool are unseen by construction, and the rotation pool excludes every
+pre-training star. The second pool shares some stars with
+it. Table~\ref{tab:unseen} removes every test star that was in the pre-training training or validation
+split and rescores the saved per-star predictions; no model is refitted. The gain exceeds
+$2\,\mathrm{SE}$ on the same tasks as before; the largest change is flare activity, $+0.051$ to
+$+0.041$, and the small loss on oscillating giants ($-0.003$) becomes a tie ($-0.001$).
+
+\begin{table}[H]
+\caption{The fusion gain (features\,$\oplus\,\mu$ minus features, linear readout) on all test stars and
+on the test stars never seen in pre-training. Bold: beyond $2\,\mathrm{SE}$ over six encoder seeds.}
+\label{tab:unseen}
+\centering
+\scriptsize
+% GENERATED by experiments/plot_ml4ps_scorecard.py -- do not hand-edit
+\begin{tabular}{llrrrr}
+\toprule
+task & metric & test stars & unseen test stars & gain, all & gain, unseen \\
+\midrule
+pulsating & PR-AUC & 2021 & 2021 & $\boldsymbol{+}\mathbf{0.057}$ & $\boldsymbol{+}\mathbf{0.057}$ \\
+eclipsing binary & PR-AUC & 2021 & 2021 & $\boldsymbol{+}\mathbf{0.033}$ & $\boldsymbol{+}\mathbf{0.033}$ \\
+rotation & PR-AUC & 15944 & 15944 & $\boldsymbol{+}\mathbf{0.055}$ & $\boldsymbol{+}\mathbf{0.055}$ \\
+transit & PR-AUC & 2021 & 2021 & $\boldsymbol{+}\mathbf{0.027}$ & $\boldsymbol{+}\mathbf{0.027}$ \\
+oscillating giant & PR-AUC & 3429 & 3164 & $\boldsymbol{-}\mathbf{0.003}$ & ${-}0.001$ \\
+solar-like osc. & PR-AUC & 3429 & 3164 & $\boldsymbol{+}\mathbf{0.071}$ & $\boldsymbol{+}\mathbf{0.069}$ \\
+RGB vs. HeB & ROC-AUC & 161 & 149 & $\boldsymbol{-}\mathbf{0.050}$ & $\boldsymbol{-}\mathbf{0.048}$ \\
+$\nu_{\max}$ & $R^2$ & 1313 & 1218 & $\boldsymbol{+}\mathbf{0.036}$ & $\boldsymbol{+}\mathbf{0.034}$ \\
+rotation period & $R^2$ & 1318 & 1318 & $\boldsymbol{+}\mathbf{0.034}$ & $\boldsymbol{+}\mathbf{0.034}$ \\
+flare activity & PR-AUC & 3429 & 3164 & $\boldsymbol{+}\mathbf{0.051}$ & $\boldsymbol{+}\mathbf{0.041}$ \\
+\bottomrule
+\end{tabular}
+
+\end{table}
+
+\section{Pre-training and readout details}
+\label{app:training}
+
+\paragraph{Architecture.} The encoder has four convolutional stages (widths $32/64/128/256$, kernel 5,
+each \DIFdelbegin \DIFdel{halving length)and a 128-dimensional latent; the }\DIFdelend \DIFaddbegin \DIFadd{followed by batch normalisation, ReLU and a max-pool that halves the length), so a 256-point
+window becomes a $256 \times 16$ map; two linear layers map its 4}{\DIFadd{,}}\DIFadd{096 values to $\mu$ and
+$\log\sigma^{2}$, the latter clamped to $[-10, 10]$. The decoder mirrors it: a linear layer lifts $z$
+to a $256 \times 16$ map, and four transposed convolutions (kernel 4, stride 2, padding 1) take it to
+128, 64, 32 and 1 channels while doubling the length from 16 to 256 points, with batch normalisation
+and ReLU after the first three and no activation on the output. Each }\DIFaddend predictor is a one-layer GRU of
+width \DIFdelbegin \DIFdel{256.
+}\DIFdelend \DIFaddbegin \DIFadd{256 followed by a linear layer back to 128 dimensions; the forward and backward GRUs share no
+weights.
+}\DIFaddend 
+
+\DIFaddbegin \paragraph{\DIFadd{Each term of the objective.}} \DIFadd{For a batch of $B$ sequences of $S = 16$ windows, with
+$\hat{x}$ decoded from the sample $z$ and $\mathrm{sg}$ the stop-gradient,
+}\begin{align*}
+\DIFadd{\mathrm{recon} }&\DIFadd{= \tfrac{1}{256BS}\textstyle\sum (\hat{x}-x)^{2}, \qquad
+\mathrm{diff} = \tfrac{1}{255BS}\textstyle\sum (\Delta\hat{x}-\Delta x)^{2}, }\\
+\DIFadd{\mathrm{spec} }&\DIFadd{= \tfrac{1}{129BS}\textstyle\sum \big[\log(P_{H}(\hat{x})+\epsilon)-\log(P_{H}(x)+\epsilon)\big]^{2},
+\qquad \epsilon = 10^{-8}, }\\
+\DIFadd{\mathrm{pred} }&\DIFadd{= \tfrac{1}{128B(S-1)}\textstyle\sum_{t=1}^{S-1}
+\|\hat{\mu}_{t+1}-\mathrm{sg}(\mu_{t+1})\|^{2} + \tfrac{1}{128B(S-1)}\textstyle\sum_{t=2}^{S}
+\|\hat{\mu}_{t-1}-\mathrm{sg}(\mu_{t-1})\|^{2}, }\\
+\DIFadd{\mathrm{KL} }&\DIFadd{= \textstyle\sum_{d=1}^{128} \tfrac{1}{BS}\sum_{b,s}
+\tfrac{1}{2}\big(\mu_{d}^{2}+\sigma_{d}^{2}-\log\sigma_{d}^{2}-1\big), }\\
+\DIFadd{\mathcal{L} }&\DIFadd{= \mathrm{recon} + w\,(\mathrm{spec}+\mathrm{diff}) + \beta\,\mathrm{KL} + \lambda\,\mathrm{pred}.
+}\end{align*}
+\DIFadd{$P_{H}$ is computed per window: the window is centred on its Hann-weighted mean, multiplied by the
+symmetric Hann taper $h_{n} = \tfrac{1}{2}\big[1-\cos(2\pi n/255)\big]$, $n = 0,\dots,255$, which is zero at
+both ends of the window, and its squared rFFT modulus is taken over the 129 non-negative frequencies,
+unnormalised. The forward predictor at step $t$ has read $\mu_{1},\dots,\mu_{t}$, the backward one
+$\mu_{S},\dots,\mu_{t}$, always the encoder's means rather than samples. Because KL is summed over
+the dimensions while the prediction term is averaged over them, $\beta$ and $\lambda$ are not on a
+common per-dimension scale.
+}
+
+\paragraph{\DIFadd{From a light curve to stored segments.}} \DIFadd{In each sector's light curve, points with any
+non-zero SPOC quality flag are set missing, and so is the first point after any jump in the time
+stamps longer than five times the median cadence. A segment is a maximal run with no
+missing point, so one missing or flagged point ends it; the five-times rule only turns a jump
+with no rows in between into a missing point, so the two rules are one rule. Each segment is normalised
+as a whole, $x' = (x - \tilde{x}) / (1.4826\,\mathrm{MAD})$ with $\tilde{x}$ its median and
+$\mathrm{MAD} = \mathrm{median}\,|x - \tilde{x}|$; if the MAD is zero or not finite the segment is
+only median-subtracted, and no other small-MAD guard is applied. Only then is the normalised segment
+cut from its start into consecutive 1}{\DIFadd{,}}\DIFadd{024-point blocks, the remainder shorter than a block
+discarded. A segment with fewer than four blocks is not stored, and a stored segment with any
+$|x'| > 20$ is discarded whole. Each block is later split into four 256-point model windows, so a
+stored segment holds at least 16 windows. In this corpus every stored segment holds four or five
+blocks (416}{\DIFadd{,}}\DIFadd{729 segments of 119}{\DIFadd{,}}\DIFadd{754 stars; none holds six), that is 16 or 20 model windows,
+5.69 or 7.11 days. Pre-training uses every stored segment of the first pool's training stars and
+draws 16 consecutive windows from it each epoch (next paragraph). Every probe instead reads one
+segment per star, its }\emph{\DIFadd{first}}\DIFadd{: the stored segment with the lowest sector and, within that
+sector, the lowest segment index, taken whole with no further selection or truncation. A star is
+therefore eligible downstream if it has at least one stored segment, and its first segment supplies
+16 windows for 94.8\% of the stars and 20 for the rest.
+}
+
+\DIFaddend \paragraph{What one pre-training example is.} The packed pre-training corpus is the 70\% training
+split of the first pool: 9{,}428 stars, 35{,}854 segments and 582{,}352 windows of 256 \DIFdelbegin \DIFdel{cadences}\DIFdelend \DIFaddbegin \DIFadd{points}\DIFaddend . The
+encoder is monitored on the pool's 15\% validation split (2{,}021 stars, 121{,}328 windows), which no
+probe \DIFdelbegin \DIFdel{ever sees}\DIFdelend \DIFaddbegin \DIFadd{saw until the validation re-check of recipe selection (Appendix~\ref{app:valloss})}\DIFaddend . One example is one segment. Each epoch it yields a fresh run of 16 consecutive
+windows beginning at a uniformly random offset inside that segment, so a long segment shows a
+different 5.69-day stretch every epoch; a segment with fewer than 16 windows never entered the pack.
+Validation uses offset 0 and every segment, so the monitored quantity does not move with the
+sampling. A batch is 256 sequences, giving 140 optimiser steps per epoch.
+
+\paragraph{The first-difference term.} In the objective of \S2, $\Delta x_{t} = x_{t+1} - x_{t}$ is
+the first difference along a window, and $\|\Delta\hat{x}-\Delta x\|^{2}$ is the mean squared error
+between the reconstruction's \DIFdelbegin \DIFdel{cadence-to-cadence }\DIFdelend \DIFaddbegin \DIFadd{point-to-point }\DIFaddend changes and the input's. It is there because the
+point-wise term $\|\hat{x}-x\|^{2}$ is already small for a smooth curve drawn through a noisy one:
+the fastest components of a light curve carry little amplitude, so a decoder that low-passes its
+input pays almost nothing for discarding them. Differencing is a high-pass operation, so the same
+error re-enters the objective weighted towards high frequency and the smoothed reconstruction is
+penalised. $P_{H}$ plays the same role in the frequency domain; the two share the weight $w$ and are
+summed with equal weight inside it.
+
+\paragraph{Optimisation.} Adam at learning rate $3\times10^{-4}$, cosine-annealed to
+$3\times10^{-6}$ over the 100-epoch cap, gradient-norm clipping at $1.0$, mixed precision. $\beta$
+rises linearly from $0$ to its target $0.1$ over the first ten epochs and stays there; the shipped
+recipe uses no free-bits floor. Training stops early once ten consecutive epochs improve no tracked
+checkpoint, a counter that is armed only after the warm-up.
+
+\paragraph{Which checkpoint is frozen.} Only post-warm-up epochs are eligible. During the warm-up
+$\beta$ and the KL term are still moving, and the scheduled-$\beta$ total is minimised at $\beta=0$,
+that is by an untrained model, so an unrestricted argmin can select the warm-up transient rather than
+a fit. Among the eligible epochs we freeze the one minimising
+$\mathrm{recon} + w\cdot\mathrm{aux}$ on the validation split. The prediction term is deliberately
+absent from that metric: it is the quantity a dynamics ablation changes, so including it would select
+each arm of that comparison by a different rule.
+
+\paragraph{Readouts.} Logistic regression is scikit-learn's \texttt{LogisticRegression} with $L_{2}$
+penalty, $C=1$, \texttt{class\_weight="balanced"} and at most 2{,}000 iterations. Ridge is
+\texttt{RidgeCV} over ten log-spaced penalties from $10^{-2}$ to $10^{3}$, chosen by leave-one-out
+cross-validation. Every input column is z-scored with the training split's own mean and standard
+deviation, and the same two numbers are applied unchanged to validation and test. For \DIFdelbegin \DIFdel{the }\DIFdelend \DIFaddbegin \DIFadd{ridge the
+scaling is fitted once on the whole training split before the leave-one-out search, so each left-out
+star contributes to the mean and standard deviation it is scaled with: the search is not nested
+inside the scaling. This can affect only which of the ten penalties is chosen, never a test star, and
+we report it as run rather than re-running it. For the }\DIFaddend fusion arm
+the 25 features and the 128 latent means are column-concatenated first and the 153-column matrix is
+standardised as a whole, so no arm gets a different scaling of the columns it shares with another.
+
+\paragraph{The supervised baselines.} C1 and C2 are trained with AdamW at learning rate
+$3\times10^{-4}$ and weight decay $10^{-4}$, dropout $0.2$ before the task head only (the trunk is
+unregularised, as the encoder's is), gradient clipping at $1.0$, mixed precision, batches of 64
+stars ($\approx 1{,}040$ windows, since the loss is per star), at most 60 epochs and patience 10.
+The positive class enters the loss with weight $n_{\mathrm{neg}}/n_{\mathrm{pos}}$ computed on the
+training split. One regularisation setting is fixed in advance for all ten tasks and no per-task
+tuning is done. Each run is selected on the best validation score in that task's own headline metric
+rather than on validation loss: at the prevalences here the validation-loss minimum and the
+validation-metric maximum routinely fall many epochs apart, and selecting on the loss would depress
+the baseline we are trying to beat.
+
+\section{The 25 engineered features}
+\label{app:features}
+
+All 25 features are computed from a star's first segment: its windows concatenated into one flux
+series $x$ of 4{,}096 or 5{,}120 \DIFdelbegin \DIFdel{cadences}\DIFdelend \DIFaddbegin \DIFadd{points}\DIFaddend , already median-normalised by its median absolute
+deviation. The periodogram is the power spectrum of the mean-subtracted series,
+$P(f) = |\mathrm{FFT}(x - \bar{x})|^{2}$ with the zero-frequency bin dropped, and
+$p(f) = P(f)/\sum_f P(f)$ its normalisation to unit sum. Frequencies are in cycles per day.
+$f_{1}, f_{2}, f_{3}$ are the three strongest local maxima of $P$, strongest first.
+\DIFaddbegin \DIFadd{Feature 24 is the MAD of $x$ without the 1.4826 factor, and it is not constant: $x$ is the
+normalised segment less its discarded trailing remainder (Appendix~\ref{app:training}), whereas the
+normalisation used the whole segment. Over the 106}{\DIFadd{,}}\DIFadd{284 stars of the rotation pool its mean is
+0.671, against $1/1.4826 = 0.674$ for an untruncated segment, with standard deviation 0.028 and
+1--99\% range 0.571--0.752.
+}\DIFaddend 
+
+\begin{table}[H]
+\caption{The engineered feature vector, modelled on the T'DA variability pipeline \citep{audenaert2021}.}
+\label{tab:features}
+\centering
+\small
+\DIFdelbeginFL
+{\scriptsize\textcolor{red}{\textbf{arXiv v1:}}}\par\nobreak\smallskip
+\begingroup\color{red}
+\begin{tabular}{llp{0.56\linewidth}}
+\toprule
+\# & feature & definition \\
+\midrule
+1--3 & $\log_{10} f_{1}, \log_{10} f_{2}, \log_{10} f_{3}$ & frequencies of the three strongest periodogram peaks \\
+4--6 & $p_{1}, p_{2}, p_{3}$ & normalised power at each peak, $p_{k} = P(f_{k})/\sum_f P(f)$ \\
+7--8 & $p_{2}/p_{1}$, $p_{3}/p_{1}$ & peak-power ratios \\
+9 & harmonic ratio & $P(2f_{1})/P(f_{1})$ at the bin nearest $2f_{1}$; $0$ if $2f_{1}$ exceeds the Nyquist frequency \\
+10--17 & band powers & $\log_{10} \sum_{f \in B_{j}} p(f)$ for eight log-spaced bands $B_{j}$ spanning 0.3--360\,c/d \\
+18 & spectral entropy & $-\sum_f p(f)\ln p(f) / \ln N$, $N$ the number of frequency bins \\
+19 & spectral centroid & $\log_{10} \sum_f f\,p(f)$ \\
+20--21 & skew, kurtosis & sample skewness and excess kurtosis of $x$ \\
+22 & point-to-point scatter ratio & $\mathrm{std}(\Delta x)/\mathrm{std}(x)$, $\Delta$ the first difference \\
+23 & depth & 95th minus 5th percentile of $x$ \\
+24 & MAD & median absolute deviation of $x$ \\
+25 & IQR & inter-quartile range of $x$ \\
+\bottomrule
+\end{tabular}
+\endgroup\par\medskip
+{\scriptsize\textcolor{blue}{\textbf{camera-ready:}}}\par\nobreak\smallskip
+\DIFdelendFL \DIFaddbeginFL \begin{tabular}{llp{0.56\linewidth}}
+\toprule
+\# & feature & definition \\
+\midrule
+1--3 & $\log_{10} f_{1}, \log_{10} f_{2}, \log_{10} f_{3}$ & frequencies of the three strongest periodogram peaks \\
+4--6 & $p_{1}, p_{2}, p_{3}$ & normalised power at each peak, $p_{k} = P(f_{k})/\sum_f P(f)$ \\
+7--8 & $p_{2}/p_{1}$, $p_{3}/p_{1}$ & peak-power ratios \\
+9 & harmonic ratio & $P(2f_{1})/P(f_{1})$ at the bin nearest $2f_{1}$; $0$ if $2f_{1}$ exceeds the Nyquist frequency \\
+10--17 & band powers & $\log_{10} \sum_{f \in B_{j}} p(f)$ for eight log-spaced bands $B_{j}$ spanning 0.3--360\,c/d \\
+18 & spectral entropy & $-\sum_f p(f)\ln p(f) / \ln N$, $N$ the number of frequency bins \\
+19 & spectral centroid & $\log_{10} \sum_f f\,p(f)$ \\
+20--21 & skew, kurtosis & sample skewness and excess kurtosis of $x$ \\
+22 & point-to-point scatter ratio & $\mathrm{std}(\Delta x)/\mathrm{std}(x)$, $\Delta$ the first difference \\
+23 & depth & 95th minus 5th percentile of $x$ \\
+24 & MAD & median absolute deviation of $x$, $\mathrm{median}\,|x - \mathrm{median}(x)|$ \\
+25 & IQR & inter-quartile range of $x$ \\
+\bottomrule
+\end{tabular}
+\DIFaddendFL \end{table}
+
+\paragraph{What ``modelled on T'DA'' means.} \citet{audenaert2021} classify Kepler Q9 light curves
+into eight variability classes with an ensemble of four supervised learners and a random-forest
+metaclassifier. We take none of that: not the classifiers, not the classes, not the training set.
+What we borrow is the shape of the feature vector its tree-based members read, and the borrowing is
+partial in ways a reader should be able to check.
+
+\emph{Kept.} A short list of periodogram peaks with their relative strengths, a harmonic
+measure of the dominant peak, an entropy measure of the signal, and robust time-domain scatter
+statistics -- skewness, kurtosis and the median absolute deviation, all three of which appear in
+their Table~1. Our point-to-point scatter ratio $\mathrm{std}(\Delta x)/\mathrm{std}(x)$ is, up to a
+square root, their variability index $\eta_{e}$, the ratio of the mean squared successive difference
+to the variance.
+
+\emph{Changed.} They extract up to six frequencies with up to ten harmonics each by iterative
+prewhitening -- fit a frequency and its harmonics, subtract them, repeat until a significance
+criterion stops the loop. We take the three strongest local maxima of one segment's periodogram, with
+no prewhitening and no significance test, and keep one harmonic ratio $P(2f_{1})/P(f_{1})$ instead of
+a harmonic series. Their amplitudes and phases become, here, powers normalised by the total and
+ratios between them: the flux is median-absolute-deviation normalised per segment, so an absolute
+amplitude is not a quantity we have, and we drop phases and phase differences entirely. Their
+FliPer, the mean power above each of four frequency cut-offs, becomes our eight log-spaced band
+powers spanning 0.3--360\,c/d plus a spectral centroid. Their entropy features are computed on the
+time series (differential entropy, multiscale sample entropy); ours is the Shannon entropy of the
+normalised power spectrum. Because a packed segment is uniformly sampled and gap-free, its
+Lomb--Scargle periodogram is the FFT periodogram, so we compute the cheaper one.
+
+\emph{Dropped.} Everything that needs a phase fold at a reliably determined period -- the
+self-organising-map location, the folded point-to-point statistics and the folded range -- because
+5.69 days covers few cycles for the longer-period classes in our menagerie. Also dropped: the
+coherency parameter, zero crossings, the range of the cumulative sum, the Shapiro--Wilk statistic,
+the variance ratio, the significant-harmonic count and the flux ratio, and the power-spectrum image
+their deep-learning member reads, which is not a feature vector at all.
+
+The result is 25 numbers, 19 from the periodogram and 6 from the time domain, and it is a baseline
+rather than a reproduction: it is deliberately the cheap, linear-readable part of a pipeline whose
+published accuracy came from an ensemble we do not run.
+
+\section{The gain under a nonlinear readout}
+\label{app:readout}
+
+\begin{table}[H]
+\caption{What 128 added columns change, relative to the 25 features alone, under each frozen readout
+(mean over six encoder seeds; absolute scores are in Table~\ref{tab:scorecard}). $+\mu$: our encoder.
+No prediction term: the same recipe trained without the GRU prediction term. Retained: the share of
+the full $\mu$ gain that survives that removal, printed only where the full gain is a gain, and
+negative where the gain changes sign rather than shrinking. Untrained: a randomly
+initialised encoder, which is a single encoder and carries no band. Bold: beyond $2\,\mathrm{SE}$ ---
+unlike Table~\ref{tab:scorecard}, where bold marks the best point estimate and implies no test. The
+last row counts tasks won, tied and lost at that bar.}
+\label{tab:readout}
+\centering
+\scriptsize
+% GENERATED by experiments/plot_ml4ps_scorecard.py -- do not hand-edit
+\begin{tabular}{llrrrrrr}
+\toprule
+ & & \multicolumn{4}{c}{linear readout} & \multicolumn{2}{c}{XGBoost readout} \\
+\cmidrule(lr){3-6}\cmidrule(lr){7-8}
+task & metric & $+\mu$ & $+\mu$, no prediction term & retained & $+$untrained $\mu$ & $+\mu$ & $+$untrained $\mu$ \\
+\midrule
+pulsating & PR-AUC & $\boldsymbol{+}\mathbf{0.057}$ & $\boldsymbol{+}\mathbf{0.051}$ & $0.89$ & ${+}0.016$ & ${-}0.011$ & ${-}0.003$ \\
+eclipsing binary & PR-AUC & $\boldsymbol{+}\mathbf{0.033}$ & $\boldsymbol{+}\mathbf{0.012}$ & $0.38$ & ${-}0.010$ & $\boldsymbol{+}\mathbf{0.010}$ & ${-}0.003$ \\
+rotation & PR-AUC & $\boldsymbol{+}\mathbf{0.055}$ & $\boldsymbol{+}\mathbf{0.036}$ & $0.65$ & ${+}0.029$ & $\boldsymbol{-}\mathbf{0.003}$ & ${-}0.010$ \\
+transit & PR-AUC & $\boldsymbol{+}\mathbf{0.027}$ & $\boldsymbol{+}\mathbf{0.018}$ & $0.66$ & ${+}0.004$ & ${+}0.011$ & ${-}0.027$ \\
+oscillating giant & PR-AUC & $\boldsymbol{-}\mathbf{0.003}$ & $\boldsymbol{-}\mathbf{0.006}$ & -- & ${-}0.003$ & ${-}0.001$ & ${-}0.008$ \\
+solar-like osc. & PR-AUC & $\boldsymbol{+}\mathbf{0.071}$ & $\boldsymbol{+}\mathbf{0.024}$ & $0.33$ & ${-}0.007$ & ${-}0.007$ & ${-}0.026$ \\
+RGB vs. HeB & ROC-AUC & $\boldsymbol{-}\mathbf{0.050}$ & $\boldsymbol{-}\mathbf{0.052}$ & -- & ${-}0.038$ & $\boldsymbol{+}\mathbf{0.016}$ & ${-}0.031$ \\
+$\nu_{\max}$ & $R^2$ & $\boldsymbol{+}\mathbf{0.036}$ & $\boldsymbol{+}\mathbf{0.010}$ & $0.29$ & ${-}0.001$ & $\boldsymbol{+}\mathbf{0.003}$ & ${-}0.005$ \\
+rotation period & $R^2$ & $\boldsymbol{+}\mathbf{0.034}$ & $\boldsymbol{+}\mathbf{0.014}$ & $0.40$ & ${-}0.003$ & $\boldsymbol{-}\mathbf{0.004}$ & ${-}0.013$ \\
+flare activity & PR-AUC & $\boldsymbol{+}\mathbf{0.051}$ & $\boldsymbol{+}\mathbf{0.033}$ & $0.65$ & ${+}0.006$ & ${+}0.003$ & ${+}0.006$ \\
+\midrule
+win / tie / loss & & 8 / 0 / 2 & & & & 3 / 5 / 2 & \\
+\bottomrule
+\end{tabular}
+
+\end{table}
+
+The retained column is the per-task form of the body's ablation count. On the eight tasks where
+fusion gains, removing the GRU prediction term leaves between $0.29$ and $0.89$ of that gain, below
+half on four of them; on none does the gain change sign. We give the eight fractions rather
+than one summary number because the ten gains are measured in PR-AUC, ROC-AUC and $R^{2}$ and cannot
+be added together.
+
+The XGBoost readout takes the same inputs as the linear one. For each task and seed it is selected
+over a grid of maximum depth $\{3,5\}$ and learning rate $\{0.05,0.1\}$, with up to 1{,}000 rounds
+and early stopping after 50 rounds without improvement on a held-out 25\% of the training stars;
+the test stars play no part in the selection. Under XGBoost the features-only arm also varies with
+the seed, through the validation split, so the gain is differenced seed by seed.
+
+Under XGBoost the $\mu$ gain (features\,$\oplus\,\mu$ minus features alone) is smaller than under the
+linear readout on most tasks. XGBoost also scores higher than the linear readout on the 25 features
+alone on nine of ten tasks, and the two changes go together. On solar-like oscillators the features-only score rises from
+0.320 to 0.470 and the $\mu$ gain falls from $+0.071$ to $-0.007$. On RGB versus helium-burning,
+where XGBoost does not raise the features-only score, the $\mu$ gain is larger under XGBoost. Across
+the ten tasks, the rise in the features-only score and the fall in the $\mu$ gain have a Spearman rank
+correlation of 0.87. This is consistent with part of the information $\mu$ supplies to a linear
+readout being already present in the 25 features, in a form only a nonlinear readout can use.
+
+Table~\ref{tab:readout} also gives the same comparison with an untrained encoder in place of the
+trained one. Under XGBoost its 128 columns lower the score on nine of ten tasks and the trained $\mu$
+scores above it on eight, so the gains that survive come from pre-training, not from adding columns.
+XGBoost on the 25 features alone also scores above the linear fusion probe on 8 of 10 tasks
+(Table~\ref{tab:scorecard}). The body's claim is about what $\mu$ adds under a fixed linear readout,
+not that the linear fusion probe is the strongest classifier available on these features.
+
+\section{Paired bootstrap over test stars}
+\label{app:bootstrap}
+
+The $2\,\mathrm{SE}$ bands in the body come from re-training and say nothing about whether the
+particular test stars favoured one arm. For every printed contrast we therefore resample each task's
+test set with replacement 1{,}000 times, rescore every arm on the identical resampled list from its
+saved per-star predictions (no model is retrained), average each arm over its seeds, and take the
+difference. Table~\ref{tab:bootstrap} gives the 95\% percentile interval of that difference and the
+share of resamples in which the fusion arm is ahead; intervals that exclude zero are bold. The check
+\DIFdelbegin \DIFdel{tightens no verdict and reverses none : }\DIFdelend \DIFaddbegin \DIFadd{reverses none of the body's 40 comparisons, and }\DIFaddend every row the body calls ahead has the fusion arm
+ahead in at least 85\% of resamples. \DIFdelbegin \DIFdel{It does loosen five of the 40 verdicts, each a resolved }\DIFdelend \DIFaddbegin \DIFadd{Five comparisons that clear }\DIFaddend $2\,\mathrm{SE}$ \DIFdelbegin \DIFdel{verdict whose interval
+touches zero: the }\DIFdelend \DIFaddbegin \DIFadd{have an interval
+that touches zero, so they rest on the seed band alone. These are the }\DIFaddend gain on transit and the loss on
+oscillating giants over the features, the lead over C1 on pulsating, the loss to C2 on RGB versus
+helium-burning (161 test stars), and the dynamics contrast on flare activity.
+
+\begin{table}[H]
+\caption{Paired star-bootstrap of the four contrasts the body counts. Each entry is the 95\% interval
+of (left arm $-$ right arm) over 1{,}000 resamples of the test stars, seeds averaged, and the share of
+resamples with the difference above zero ($f_{>0}$; 1.00 means the left arm is ahead in every
+resample, 0.00 that it is behind in every resample). Bold: interval excludes zero.}
+\label{tab:bootstrap}
+\centering
+\scriptsize
+\setlength{\tabcolsep}{2pt}
+% GENERATED by experiments/analyze_paper_bootstrap.py -- do not hand-edit
+\begin{tabular}{lrrrrrrrr}
+\toprule
+task & \multicolumn{2}{c}{fusion $-$ features} & \multicolumn{2}{c}{fusion $-$ C1} & \multicolumn{2}{c}{fusion $-$ C2} & \multicolumn{2}{c}{fusion $-$ dynamics-off fusion} \\
+ & 95\% CI & $f_{>0}$ & 95\% CI & $f_{>0}$ & 95\% CI & $f_{>0}$ & 95\% CI & $f_{>0}$ \\
+\midrule
+pulsating & $\mathbf{[+0.012, +0.105]}$ & 0.99 & $[-0.008, +0.073]$ & 0.94 & $\mathbf{[+0.045, +0.150]}$ & 1.00 & $[-0.023, +0.036]$ & 0.69 \\
+eclipsing binary & $\mathbf{[+0.005, +0.062]}$ & 0.99 & $[-0.024, +0.025]$ & 0.52 & $\mathbf{[+0.022, +0.094]}$ & 1.00 & $\mathbf{[+0.004, +0.038]}$ & 0.99 \\
+rotation & $\mathbf{[+0.043, +0.066]}$ & 1.00 & $\mathbf{[+0.017, +0.048]}$ & 1.00 & $\mathbf{[+0.005, +0.039]}$ & 0.99 & $\mathbf{[+0.014, +0.025]}$ & 1.00 \\
+transit & $[-0.025, +0.065]$ & 0.85 & $\mathbf{[+0.041, +0.124]}$ & 1.00 & $\mathbf{[+0.046, +0.174]}$ & 1.00 & $[-0.016, +0.035]$ & 0.78 \\
+oscillating giants & $[-0.010, +0.005]$ & 0.21 & $\mathbf{[+0.028, +0.057]}$ & 1.00 & $\mathbf{[+0.021, +0.051]}$ & 1.00 & $[-0.002, +0.008]$ & 0.87 \\
+solar-like osc. & $\mathbf{[+0.044, +0.097]}$ & 1.00 & $[-0.037, +0.022]$ & 0.34 & $\mathbf{[+0.079, +0.151]}$ & 1.00 & $\mathbf{[+0.025, +0.067]}$ & 1.00 \\
+RGB vs.\ HeB & $\mathbf{[-0.087, -0.012]}$ & 0.00 & $\mathbf{[+0.099, +0.247]}$ & 1.00 & $[-0.126, +0.020]$ & 0.08 & $[-0.037, +0.039]$ & 0.52 \\
+$\nu_{\max}$ & $\mathbf{[+0.028, +0.043]}$ & 1.00 & $\mathbf{[+0.024, +0.045]}$ & 1.00 & $\mathbf{[+0.018, +0.047]}$ & 1.00 & $\mathbf{[+0.020, +0.031]}$ & 1.00 \\
+rotation period & $\mathbf{[+0.023, +0.046]}$ & 1.00 & $\mathbf{[+0.039, +0.073]}$ & 1.00 & $\mathbf{[-0.038, -0.004]}$ & 0.01 & $\mathbf{[+0.014, +0.027]}$ & 1.00 \\
+flare & $\mathbf{[+0.019, +0.078]}$ & 1.00 & $[-0.047, +0.029]$ & 0.32 & $\mathbf{[+0.027, +0.128]}$ & 1.00 & $[-0.000, +0.035]$ & 0.97 \\
+\bottomrule
+\end{tabular}
+
+\end{table}
+
+\section{The two tasks where fusion does not help}
+\label{app:negatives}
+
+\begin{center}
+\small
+\begin{tabular}{lrrrrr}
+\toprule
+task & features & fusion $\Delta$ & $2\,\mathrm{SE}$ & untrained $\Delta$ & $n_{\mathrm{test}}$ \\
+\midrule
+oscillating giants & 0.920 & $-0.003$ & 0.002 & $-0.003$ & 3{,}429 \\
+RGB vs.\ He-burning & 0.758 & $-0.050$ & 0.019 & $-0.038$ & 161 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\paragraph{Oscillating giants: the 25 features already cover the task.} The labels of
+\citet{hon2021} come from a convolutional classifier reading a $128 \times 128$ image of each star's
+power spectrum, which fires on a visible oscillation power excess at
+$6 \lesssim \nu_{\max} \lesssim 250\,\mu$Hz. Our engineered vector encodes close to that same
+quantity: eight log-spaced band powers spanning 0.3--360\,c/d, plus the spectral centroid and
+entropy, locate the excess and describe its concentration. The features accordingly reach $0.920$,
+and the trained and untrained fusion arms then lose the same $0.003$: 128 collinear columns
+diluting a linear fit, with no trained-versus-untrained difference left to attribute to $\mu$.
+
+\paragraph{RGB versus helium-burning: no arm resolves the discriminant.} \citet{sreenivas2026} assign
+the evolutionary state with a convolutional classifier reading the background-corrected power spectrum
+\emph{folded at} $\Delta\nu$; the physics underneath is the dipole mixed-mode period spacing
+$\Delta\Pi_{1}$ \citep{bedding2011}. Neither is accessible at our baseline. The encoder sees one
+\DIFdelbegin \DIFdel{256-cadence }\DIFdelend \DIFaddbegin \DIFadd{256-point }\DIFaddend window at a time, so the finest frequency structure available to $\mu$ is
+$\Delta f = 32.6\,\mu$Hz, while $\Delta\nu$ for these stars is $\approx 1.5$--$18\,\mu$Hz; the comb
+itself is unresolved, let alone a fold of it. The engineered features, computed on the whole 5.69 \DIFaddbegin \DIFadd{or 7.11}\DIFaddend \,d
+segment, reach \DIFdelbegin \DIFdel{$2.0\,\mu$}\DIFdelend \DIFaddbegin \DIFadd{$2.0$ or $1.6\,\mu$}\DIFaddend Hz, still coarser than the mixed-mode spacing
+$\Delta\Pi_{1}\nu^{2} \approx 0.2$--$0.6\,\mu$Hz near $\nu_{\max} = 50\,\mu$Hz. No arm on this row
+measures the quantity the label encodes; the $0.758$ the features reach rides on correlates of
+evolutionary state rather than on its discriminant. The row behaves accordingly: it is the only one
+where C2 ($0.762$) is ahead of the fusion probe while C1 reaches only $0.530$ on 755 training stars,
+and it carries the smallest test set in the study.
+
+\paragraph{Why 128 redundant columns cost a linear fit.} A linear readout spends its training stars
+estimating one coefficient per column, and each estimate carries its own error into the prediction
+whether or not the column carries signal. On the RGB-versus-helium-burning row the features arm fits
+25 coefficients on 755 training stars and the fusion arm 153, so the stars-per-coefficient ratio
+falls from about 30 to about 5 while, by the resolution argument above, the added columns supply
+nothing the label depends on. The variance a column adds scales with how few stars are available to
+pin it down; the signal it adds does not. A column is therefore worth its place only when what it
+adds exceeds that cost, and on this row and on oscillating giants it does not. The logistic readout's
+$L_{2}$ penalty is fixed at $C = 1$ for every task rather than tuned per task, so it damps this effect
+but does not remove it. The prediction that follows is the one the table above shows: an untrained
+encoder's 128 columns should cost about the same as a trained one's, since the argument never
+mentions what the columns contain, and they do ($-0.038$ against $-0.050$, and $-0.003$ against
+$-0.003$).
+
+\section{\DIFdelbegin \DIFdel{Validation reconstruction against downstream score}\DIFdelend \DIFaddbegin \DIFadd{How the recipe was chosen, and the validation loss as a selector}\DIFaddend }
+\label{app:valloss}
+
+\DIFdelbegin \DIFdel{The }\DIFdelend \DIFaddbegin \paragraph{\DIFadd{How the recipe was chosen.}} \DIFadd{A recipe is one version of the pre-training objective,
+differing in its loss terms and their weights, floors and spectral taper; every recipe is trained
+with several seeds and uses the same architecture. We chose among }\DIFaddend 29 \DIFaddbegin \DIFadd{recipes on the first pool's
+}\emph{\DIFadd{test}} \DIFadd{split: the readout scores on its three detection tasks and its rotation labels, and the
+reconstruction-artifact criterion of Appendix~\ref{app:artifact}, were all computed there. That choice
+should have been made on the validation split, and future selection will use it. We therefore
+re-scored every recipe on the first pool's validation split. The choice is unchanged, because on
+neither split does any recipe meet the artifact criterion without losing a task, so the rule fixed
+in advance keeps the recipe that was in use before the search either way (Appendix~\ref{app:artifact}). No other task played
+a part, and the rotation tasks we report are scored on a separate pool of stars.
+}
+
+\DIFadd{Four of the seven gains that count are therefore on tasks that played no part in the choice. These
+are solar-like oscillators, $\nu_{\max}$ and flare activity, scored on the second pool, and rotation
+period, scored on the rotation pool, and none of them is what the first pool was enriched for. The
+other three gains (pulsating, eclipsing binary and transit) are on the first pool. Their tasks were
+among those the choice was made on, and their readouts are trained on the first pool's training stars,
+whose light curves the encoder had already seen, without labels, during pre-training.
+}
+
+\paragraph{\DIFadd{The validation loss as a selector.}} \DIFadd{A rule for choosing the recipe that needs no labels,
+such as taking the recipe with the lowest validation reconstruction loss, would not have served
+instead. Among the ten recipes that differ only in the prediction term, that rule picks one of the
+three worst on every task (below). The 29 }\DIFaddend recipes \DIFdelbegin \DIFdel{behind }%DIFDELCMD < \S4 %%%
+\DIFdelend come from two rounds of pre-training experiments,
+one per figure.
+Figure~\ref{fig:valloss_a} is the earlier round, ten recipes that differ only in the GRU prediction
+term; Figure~\ref{fig:valloss_b} is 19 variants of our final recipe. Every recipe was scored on the
+three detection tasks of the first star pool, the tasks the recipes were developed on, so those are the
+tasks shown. The other seven \DIFdelbegin \DIFdel{probes }\DIFdelend \DIFaddbegin \DIFadd{tasks }\DIFaddend were not run for every recipe, and the rotation tasks are scored
+on a pool these recipes were never encoded on. \DIFaddbegin \DIFadd{The readout scores in both figures are on the first
+pool's test split, the split the recipe was chosen on (previous paragraph); each comparison is
+repeated below on its validation split. }\DIFaddend Pooled over all 29 recipes, the one with the lowest
+validation reconstruction loss is the same on all three tasks (the diamond in
+Figure~\ref{fig:valloss_b}, which has no spectral auxiliary term)\DIFdelbegin \DIFdel{; }\DIFdelend \DIFaddbegin \DIFadd{. On the test split }\DIFaddend it ranks 10th,
+27th and 19th of 29 on eclipsing binaries, pulsators and transits, and trusting it costs
+$0.011$--$0.031$ PR-AUC against the best recipe\DIFaddbegin \DIFadd{; on the validation split it ranks 3rd, 1st and 10th,
+at a cost of $0.000$--$0.013$}\DIFaddend . Each figure below repeats the comparison within its own round.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\linewidth]{figures/figB_valloss_a.pdf}
+\caption{Validation reconstruction loss against downstream probe score in the earlier round, one point
+per pre-training recipe and one panel per task. The ten recipes share corpus, architecture and loss
+terms and differ only in the GRU prediction term (off, forward, forward+backward, multi-step, the last
+three at three weights), four seeds each. $x$: best post-warm-up validation reconstruction loss,
+averaged over the recipe's seeds; $y$: PR-AUC of the fixed linear probe on $\mu$; $\rho$: Spearman's
+rank correlation between negated loss and score. The loss-optimal recipe is the dynamics-free one
+(red) on all three tasks, and it is \DIFaddbeginFL \DIFaddFL{among }\DIFaddendFL the \DIFaddbeginFL \DIFaddFL{three }\DIFaddendFL worst \DIFdelbeginFL \DIFdelFL{or next-to-worst probe }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{probes }\DIFaddendFL on each.}
+\label{fig:valloss_a}
+\end{figure}
+
+In Figure~\ref{fig:valloss_a} the loss-optimal recipe is the dynamics-free one on all three tasks, and
+it is \DIFdelbegin \DIFdel{the worst or next-to-worst probe }\DIFdelend \DIFaddbegin \DIFadd{among the three worst probes }\DIFaddend on each, so selecting on the loss costs $0.021$--$0.035$
+PR-AUC against the probe-optimal recipe. The trend is not carried by that one point: with it removed,
+$\rho$ still runs from $-0.47$ to $-0.87$. \DIFaddbegin \DIFadd{On the validation split the same recipe is again among
+the three worst probes on every task, and selecting on the loss costs $0.022$--$0.041$. }\DIFaddend Those recipes predate our encoder -- they carry an earlier
+spectral auxiliary term -- so Figure~\ref{fig:valloss_b} repeats the estimator on 19 variants of the
+final recipe: 16 vary only the form, weight or floor of the spectral auxiliary term \DIFdelbegin \DIFdel{, }\DIFdelend \DIFaddbegin \DIFadd{(that floor is a
+lower bound on the term's value, Appendix~\ref{app:artifact}, absent from our recipe; the
+$\epsilon = 10^{-8}$ inside its logarithm is the same in every recipe), }\DIFaddend two also put a
+floor under the KL term, and one removes the GRU prediction term; six seeds each (two more variants
+in which one seed collapsed are excluded; we never drop a seed).
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{figures/figB_valloss_b.pdf}
+\caption{The same estimator as Figure~\ref{fig:valloss_a}, on the 19 variants of our final recipe.
+The diamond has no auxiliary term, the cross is the one variant without the GRU prediction term, the
+star is the recipe we use. $x$: best post-warm-up validation reconstruction loss; $y$: PR-AUC of the
+fixed linear probe on $\mu$; $\rho$: Spearman's rank correlation between negated loss and score.}
+\label{fig:valloss_b}
+\end{figure}
+
+There the anti-correlation does not persist as such: $\rho$ is $-0.51$ on pulsating and $-0.50$ on
+transit but $+0.37$ on eclipsing binaries. What persists is that the loss is not
+a selector: its optimum is again the recipe with the weakest competing term (the diamond, no
+auxiliary term at all), which \DIFdelbegin \DIFdel{is never the probe optimum, and trusting it }\DIFdelend \DIFaddbegin \DIFadd{ranks 17th, 10th and 16th of 19 on pulsators, eclipsing binaries and
+transits and }\DIFaddend costs $0.011$--$0.031$ PR-AUC. \DIFaddbegin \DIFadd{On the validation split the same recipe ranks 1st, 3rd
+and 10th, at a cost of $0.000$--$0.013$: there it is the best pulsator probe. }\DIFaddend So
+Figure~\ref{fig:valloss_a} shows an anti-correlation on every task \DIFaddbegin \DIFadd{and on both splits}\DIFaddend ; this one shows
+it \DIFdelbegin \DIFdel{surviving }\DIFdelend on two tasks \DIFdelbegin \DIFdel{and reversing on one}\DIFdelend \DIFaddbegin \DIFadd{of the test split, and a loss optimum whose rank changes with the split}\DIFaddend ; in neither
+\DIFdelbegin \DIFdel{does the loss choose}\DIFdelend \DIFaddbegin \DIFadd{is the loss a selector we could have relied on}\DIFaddend . Both are statements across recipes
+only: within one recipe, across its seeds, no label-free curve metric we tried (reconstruction,
+reconstruction plus auxiliary, active latent units) ranks the seeds, every such correlation sitting
+within $\pm 0.3$ of zero.
+
+\section{The within-window artifact, and the two gates that governed it}
+\label{app:artifact}
+
+\paragraph{Why the objective carries a tapered power spectrum.} A point-wise reconstruction error
+prices a light curve by amplitude, and in these data amplitude sits mostly in the slow component, so
+a decoder can score well on it while discarding the periodic structure the tasks depend on. The two
+auxiliary terms put the pressure back where the point-wise term does not reach: the first difference
+in time, and the log power spectrum across frequency. The spectrum is taken on a Hann-tapered window
+rather than on the raw one, for the reason the rest of this appendix gives.
+
+\paragraph{What the decoder found instead.} Every term in the objective is computed inside a single
+\DIFdelbegin \DIFdel{256-cadence }\DIFdelend \DIFaddbegin \DIFadd{256-point }\DIFaddend window; nothing spans a boundary. A narrow impulse raises log-power at every frequency at
+once, so a decoder can lower the log-spectrum error by planting one spike rather than by reproducing
+the star's spectrum. Where the cheapest spike sits is decided by the taper, a fixed function of
+position within the window: with a rectangular window it is the window edge, and under a Hann taper
+it is the window centre, where the taper weight is largest. Figure~\ref{fig:recon} shows both, in
+flux and in the position-resolved error. Laid end to end, the spikes form one train with a period of
+exactly one window, which is a property of the display and not of the objective.
+
+Measured as the per-position reconstruction error divided by its own interior median (positions
+16--240), maximised over position within each seed and then averaged over six seeds, the rectangular
+recipe reaches $31.7\times$ at the window edge and the tapered recipe $11.8\times$ near the centre.
+The taper moved the defect and shrank it; it did not remove it. An earlier claim that it had was
+based on a measurement taken only at the edge, and is withdrawn.
+
+\begin{figure}[H]
+\centering
+\DIFdelbeginFL \DIFdelFL{\includegraphics[width=\linewidth]{figures/v1_figD_recon.pdf}
+}\DIFdelendFL \DIFaddbeginFL \DIFaddFL{\includegraphics[width=\linewidth]{figures/figD_recon.pdf}
+}\DIFaddendFL \caption{The artifact, in two stars and in the average. \textbf{Top two rows:} three consecutive
+\DIFdelbeginFL \DIFdelFL{256-cadence }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{256-point }\DIFaddendFL windows of one pulsator and one quiet star, input flux in grey against each recipe's
+reconstruction; dotted lines mark the window boundaries, and both rows of a column share one
+$y$-scale. The two recipes differ only in the taper used for the auxiliary spectral term. Neither
+decoder reproduces the \DIFdelbeginFL \DIFdelFL{cadence-scale }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{point-to-point }\DIFaddendFL scatter, which a 128-dimensional bottleneck cannot carry; what
+differs is where each one puts a spike it does not need. \textbf{Bottom:} reconstruction error by
+position within the window, divided by that seed's median over positions 16--240. Thin lines are the
+six pre-training seeds, thick lines their mean. The dashed line is the pre-registered artifact gate.
+The seed mean understates the tapered recipe's peak because its position moves between seeds
+(125--143), which is why the gate is read as a maximum within each seed.}
+\label{fig:recon}
+\end{figure}
+
+\paragraph{The two pre-registered acceptance criteria.} Both were registered on 2026-08-15, before
+any of the interventions below were written.
+
+\emph{Artifact gate.} The within-window impulse ratio -- the quantity plotted in the lower panel of
+Figure~\ref{fig:recon} -- taken as the maximum over \emph{all} positions rather than at the edge
+alone, at most $1.5\times$ at full auxiliary weight, over six seeds, \emph{and} a visual sign-off on
+a fresh random sample of reconstructed light curves. The number never passes on its own: reading an
+edge-only number is how the withdrawn claim above was made in the first place.
+
+\emph{No-regression gate.} No task among eclipsing binaries, pulsators, rotation and transits worse
+than the incumbent recipe by more than $2\,\mathrm{SE}$, at both readouts, paired over six seeds. It
+is the guard against a clean but useless encoder: a recipe that abolishes the impulse and loses the
+probe is not a fix.
+
+\paragraph{What we tried, and why the tapered recipe is the one we ship.} We varied the auxiliary
+term along four axes: its \emph{mechanism} (remove it entirely; average the spectrum over a family of
+Slepian tapers so that no single position is cheapest; add a penalty on the excess kurtosis of the
+residual; both together; put a floor under the spectral sub-term), its \emph{amount} (six weights of
+the best mechanism, from $0.0125$ to $0.20$), the \emph{level} of that floor (rebuilt as a two-sided
+hinge, which unlike a clamp keeps a restoring gradient, at three measured values), and finally a
+\emph{floor on the KL term}, which was the remaining untried lever. No cell cleared both gates\DIFaddbegin \DIFadd{, on
+the test split the gates were run on or on the validation split we re-scored them on
+(Appendix~\ref{app:valloss})}\DIFaddend . The
+ones that removed the impulse lost the probe; the ones that kept the probe kept a measurable impulse.
+The nearest miss reached $1.55 \pm 0.05$, which is $2.4\,\mathrm{SE}$ above the gate; its repaired
+variant reached $1.47$ over six seeds and $1.55$ over twelve, and \DIFaddbegin \DIFadd{on the test split }\DIFaddend regressed on
+pulsators at both readouts\DIFaddbegin \DIFadd{. On the validation split it does not regress, but it stays above the
+artifact gate ($1.55$)}\DIFaddend .
+
+Because no candidate passed, the rule fixed before the ladder ran leaves the incumbent in place. The
+encoder this paper uses is therefore the Hann-tapered recipe by a pre-registered fallback, not
+because it won a comparison. Two things make that defensible rather than merely procedural. The
+artifact was separately measured not to cost the downstream probe -- ablating it moved $\nu_{\max}$
+by $+0.0001 \pm 0.0037$ -- and closing the channel, which was also a test of whether the validation
+loss becomes a usable selector once it can no longer be lowered by the trick, did not make it one
+(Appendix~\ref{app:valloss}).
+
+\end{document}
