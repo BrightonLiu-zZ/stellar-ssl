@@ -111,8 +111,8 @@ of 10 tasks and indistinguishable on the other 3; against an MLP on raw flux it 
 \paragraph{Data.} We use the 2-minute PDCSAP (Pre-search Data Conditioning Simple Aperture
 Photometry) light curves of the TESS Science Processing Operations Center (SPOC), for stars brighter than TESS magnitude
 $T = 10$ from Sectors 27--101. Each light curve is split into segments at every missing point
-and every point the SPOC pipeline flags as unreliable, a time jump longer than five times the usual
-sampling interval counting as a missing point. Each segment has its median subtracted, is divided by
+and every point the SPOC pipeline flags as unreliable, a time jump longer than ten minutes (five
+times the 2-minute spacing between points) counting as a missing point. Each segment has its median subtracted, is divided by
 its median absolute deviation, and is sliced into non-overlapping windows of 256 points ($256 \times 120$\,s $\approx 8.5$\,h). We store a segment only if it holds
 at least 16 windows. Segments are cut in whole blocks of four windows and none in this data holds
 more than five blocks, so every stored segment holds 16 or 20 windows (5.69 or 7.11\,d;
